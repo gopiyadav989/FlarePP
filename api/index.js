@@ -1,17 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import fileUpload from "express-fileupload";
 
 import authRoutes from "./routes/authRoutes.js";
-
-import connectToDatabase from "./config/database.js";
-
 dotenv.config();
+import connectToDatabase from "./config/database.js";
 connectToDatabase();
+
+import cloudinaryConnect from "./config/cloudinary.js";
+cloudinaryConnect();
+
+
+
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: "/tmp"
+}))
 
 app.use("/api/auth", authRoutes);
 

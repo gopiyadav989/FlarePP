@@ -9,34 +9,25 @@ import ProtectedRoute from "./components/ProtectedRoute";
 export default function App() {
   return (
     <BrowserRouter>
-      <nav>
-        {/* Public navigation links */}
-        <Link to="/">Home</Link>
-      </nav>
       <Routes>
-        {/* Public Routes */}
 
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
 
-
         {/* Role-Based Protected Routes */}
-        <Route
-          path="editor-dashboard/*"
-          element={
-            <ProtectedRoute role="editor">
-              <EditorDashboard />
-            </ProtectedRoute>
-          }
+        <Route path="editor-dashboard/" element={
+          <ProtectedRoute role="editor">
+            <EditorDashboard />
+          </ProtectedRoute>
+        }
         />
-        <Route
-          path="creator-dashboard/*"
-          element={
-            <ProtectedRoute role="creator">
-              <CreatorDashboard />
-            </ProtectedRoute>
-          }
+        <Route path="creator-dashboard/*" element={
+          <ProtectedRoute role="creator">
+            <CreatorDashboard />
+          </ProtectedRoute>
+        }
         />
       </Routes>
     </BrowserRouter>
