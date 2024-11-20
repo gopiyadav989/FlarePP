@@ -23,7 +23,8 @@ export default function App() {
           </ProtectedRoute>
         }
         />
-        <Route path="creator-dashboard/*" element={
+
+        <Route path="creator-dashboard/" element={
           <ProtectedRoute role="creator">
             <CreatorDashboard />
           </ProtectedRoute>
