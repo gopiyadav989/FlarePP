@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: "/tmp"
 }))
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 

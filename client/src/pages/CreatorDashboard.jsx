@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 export default function CreatorDashboard() {
   const navigate = useNavigate();
@@ -7,11 +7,7 @@ export default function CreatorDashboard() {
   return (
     
     <div className="flex h-screen bg-gray-900 text-white">
-      <nav>
-      <Link to="tasks">Tasks</Link>
-      <Link to="profile">Profile</Link>
-      <button onClick={()=> navigate("tasks")}>hi there</button>
-    </nav>
+      
       {/* Sidebar */}
       <aside className="w-1/5 bg-gray-800 flex flex-col justify-between border-2">
         <div>
@@ -37,6 +33,7 @@ export default function CreatorDashboard() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Header */}
+        <Outlet/>
         <header className="flex justify-end px-8 py-4 bg-gray-800 border-2">
           <button className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded flex items-center gap-2">
             <span className="material-icons">Upload Video</span>

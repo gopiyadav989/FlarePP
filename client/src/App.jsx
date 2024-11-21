@@ -17,20 +17,30 @@ export default function App() {
         <Route path="signup" element={<Signup />} />
 
         {/* Role-Based Protected Routes */}
-        <Route path="editor-dashboard/" element={
+        <Route path="editor-dashboard" element={
           <ProtectedRoute role="editor">
             <EditorDashboard />
-          </ProtectedRoute>
-        }
-        />
+          </ProtectedRoute>}>
+          
+          <Route path="tasks" element={<Tasks />} />
+        </Route>
 
-        <Route path="creator-dashboard/" element={
+        <Route path="creator-dashboard" element={
           <ProtectedRoute role="creator">
             <CreatorDashboard />
-          </ProtectedRoute>
-        }
-        />
+          </ProtectedRoute>}>
+        </Route>
+
+
       </Routes>
     </BrowserRouter>
   );
+}
+
+function Tasks() {
+  return (
+    <div>
+      taksesdfad
+    </div>
+  )
 }

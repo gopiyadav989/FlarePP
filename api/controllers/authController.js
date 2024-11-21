@@ -14,6 +14,7 @@ export const login = async (req, res) => {
             })
         }
 
+
         const validPassword = bcrypt.compareSync(password, validUser.password);
         if (!validPassword) {
             return res.status(401).json({
@@ -24,10 +25,12 @@ export const login = async (req, res) => {
 
         const token = jwt.sign({ userId: validUser._id }, process.env.JWT_SECRET);
         const { password: pass, ...rest } = validUser._doc;
+        console.log(token);
         
         res.cookie("access-token", token, { httpOnly: true }).status(200).json({
             success: true,
-            user: rest
+            user: rest,
+            token: token,
         });
 
 

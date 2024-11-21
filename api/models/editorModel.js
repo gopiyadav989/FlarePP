@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const editorSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -25,9 +25,20 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["creator", "editor"],
+        default: "editor",
         required: true,
-    }
-}, {timestamps: true});
+    },
+    videos: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "videoModel",
+        }
+    ],
+    socialLinks: [
+        {
+            type: String,
+        }
+    ]
+}, { timestamps: true });
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model("Editor", editorSchema);
