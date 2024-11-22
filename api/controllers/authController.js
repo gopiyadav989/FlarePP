@@ -1,19 +1,26 @@
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcryptjs';
-import User from "../models/userModel.js";
+import Creator from "../models/creatorModel.js";
+import Editor from "../models/editorModel.js";
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
+    if(!role){
+        return res.status(401).json({
+            success: false,
+            message: "role not found",
+        })
+    }
+    const Model =  role === "editor" ? Editor : Creator;
     try {
 
-        const validUser = await User.findOne({ email });
+        const validUser = await Model.findOne({ email });
         if (!validUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found",
             })
         }
-
 
         const validPassword = bcrypt.compareSync(password, validUser.password);
         if (!validPassword) {
@@ -23,19 +30,30 @@ export const login = async (req, res) => {
             })
         }
 
-        const token = jwt.sign({ userId: validUser._id }, process.env.JWT_SECRET);
+        const payload = {
+            email: validUser.email,
+            role: validUser.role,
+            id: validUser._id,
+        }
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET);
         const { password: pass, ...rest } = validUser._doc;
         console.log(token);
+
+        const options = {
+            httpOnly: true,
+          };
         
-        res.cookie("access-token", token, { httpOnly: true }).status(200).json({
+        res.cookie("access-token", token, options).status(200).json({
             success: true,
             user: rest,
             token: token,
+            message: "user logged in"
         });
-
 
     }
     catch (error) {
+        console.error("Error during login:", error.message);
         return res.status(500).json({
             success: false,
             message: "login fail"
@@ -48,10 +66,17 @@ export const login = async (req, res) => {
 export const signup = async (req, res) => {
 
     const { fullName, email, password, role } = req.body
+    if(!role){
+        return res.status(401).json({
+            success: false,
+            message: "role not found",
+        })
+    }
+    const Model =  role === "editor" ? Editor : Creator;
 
     try {
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await Model.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -60,12 +85,12 @@ export const signup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 7);
-        const newUser = new User({
+        const newUser = new Model({
             name: fullName,
+            username: fullName.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
             email,
             password: hashedPassword,
-            role: "creator",
-            username: fullName.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
+            role: role,
         })
 
         await newUser.save();

@@ -8,20 +8,23 @@ const videoSchema = new mongoose.Schema({
     description: {
         type: String,
     },
+    thumbnail: {
+        type: String,
+    },
     creator: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Creator",
         required: true,
     },
     editor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Editor",
     },
-    videoUrl: {
+    creatorUploadedVideo : {
         type: String,
         required: true,
     },
-    editedVideoUrl: {
+    editorUploadedVideo: {
         type: String,
     },
     status: {
@@ -29,7 +32,6 @@ const videoSchema = new mongoose.Schema({
         enum: ["uploaded", "assigned", "edited", "approved", "published"],
         default: "uploaded",
     },
-    timestamps: true,
-});
+},{timestamps: true});
 
 export default mongoose.model("Video", videoSchema);

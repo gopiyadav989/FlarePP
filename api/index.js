@@ -5,6 +5,8 @@ import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
+import videoRoutes from "./routes/videoRoutes.js"
+
 dotenv.config();
 import connectToDatabase from "./config/database.js";
 connectToDatabase();
@@ -12,10 +14,7 @@ connectToDatabase();
 import cloudinaryConnect from "./config/cloudinary.js";
 cloudinaryConnect();
 
-
-
 const app = express();
-
 app.use(express.json());
 app.use(cors());
 app.use(fileUpload({
@@ -25,6 +24,7 @@ app.use(fileUpload({
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/videos",videoRoutes);
 
 app.get("/", (req, res) => {
   return res.json({
