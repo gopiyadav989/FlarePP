@@ -1,5 +1,6 @@
 import Creator from "../models/creatorModel.js";
 import Video from "../models/videoModel.js";
+import cloudinaryUploader from "../utils/cloudinaryUploader.js"
 
 export async function uploadVideo(req,res){
     try{
@@ -15,12 +16,12 @@ export async function uploadVideo(req,res){
         const videoFile = req.files.videofile;
         const thumbnailFile = req.files.thumbnail;
 
-        const videoUploadResponse = await fileUploader(
+        const videoUploadResponse = await cloudinaryUploader(
             videoFile,
             process.env.FOLDER_NAME
         );
 
-        const thumbnailUploadResponse = await fileUploader(
+        const thumbnailUploadResponse = await cloudinaryUploader(
             thumbnailFile,
             process.env.FOLDER_NAME
         );
@@ -42,7 +43,7 @@ export async function uploadVideo(req,res){
 
         console.log(updatedCreator);
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "Video uploaded successfully",
             video: newVideo,
             creator: updatedCreator,
@@ -50,7 +51,7 @@ export async function uploadVideo(req,res){
 
     }
     catch(error){
-        console.error("Error in uploading video", error.message);
+        console.error("Error in uploading video ", error.message);
         return res.status(500).json({ message: "Error in uploading video", error: error.message });
     }
 }

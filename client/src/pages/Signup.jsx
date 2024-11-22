@@ -6,7 +6,7 @@ export default function Signup() {
 
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ role: "creator" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -20,10 +20,14 @@ export default function Signup() {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   }
 
+  function handleRoleChange(role) {
+    setFormData((prev) => ({ ...prev, role }));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!formData.password || !formData.confirmPassword || !formData.fullName || !formData.email) {
+    if (!formData.password || !formData.confirmPassword || !formData.fullName || !formData.email || !formData.role) {
       setError("Fill all values");
       return;
     }
@@ -54,7 +58,7 @@ export default function Signup() {
     catch (error) {
       setError("error while calling to backend");
     }
-    finally{
+    finally {
       setLoading(false);
     }
 
@@ -62,8 +66,25 @@ export default function Signup() {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="shadow-lg w-full max-w-xl p-10 rounded-lg">
-        <h1 className="text-3xl text-center font-bold my-7 uppercase">sign up</h1>
+      <div className="shadow-lg w-full max-w-lg p-10 rounded-lg">
+        
+        <div className="mb-7">
+          <h1 className="text-3xl text-center font-bold my-7 uppercase">sign up</h1>
+
+          {/* Horizontal Toggle */}
+          <div className="relative w-full h-12 bg-gray-200 rounded-full flex items-center">
+            <div className={`absolute top-0 bottom-0 w-1/2 bg-blue-500 rounded-full transform transition-transform ${formData.role === "creator" ? "translate-x-0" : "translate-x-full"}`}></div>
+            <div className="flex justify-between w-full z-10">
+              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "creator" ? "text-white" : "text-gray-600"}`}
+                onClick={() => handleRoleChange("creator")}>
+                Creator
+              </button>
+              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "editor" ? "text-white" : "text-gray-600"}`} onClick={() => handleRoleChange("editor")}>
+                Editor
+              </button>
+            </div>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col">
 
@@ -93,6 +114,6 @@ export default function Signup() {
         </form>
 
       </div>
-    </div>
+    </div >
   )
 }

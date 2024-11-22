@@ -5,7 +5,7 @@ import {login} from "../redux/reducers/userSlice"
 import "./../css/LoginSignup.css";
 
 export default function Login() {
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState({ role: "creator" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -17,6 +17,10 @@ export default function Login() {
             [e.target.id]: e.target.value,
         });
     };
+
+    function handleRoleChange(role) {
+        setFormData((prev) => ({ ...prev, role }));
+      }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,6 +52,7 @@ export default function Login() {
                 user:data.user,
                 role: data.user.role
             }))
+            document.cookie = `accessToken=${data.token}; path=/; Secure; SameSite=Strict`;
             navigate("/");
         } catch (e) {
             setError("error while calling backend");
@@ -61,9 +66,23 @@ export default function Login() {
         <div className="flex items-center justify-center h-screen gap-12">
             {/* Form Section */}
             <div className="shadow-lg w-full max-w-xl p-10 rounded-lg">
-                <h1 className="text-3xl text-center font-bold my-7 uppercase">
-                    Sign In
-                </h1>
+            <div className="mb-7">
+          <h1 className="text-3xl text-center font-bold my-7 uppercase">sign up</h1>
+
+          {/* Horizontal Toggle */}
+          <div className="relative w-full h-12 bg-gray-200 rounded-full flex items-center">
+            <div className={`absolute top-0 bottom-0 w-1/2 bg-blue-500 rounded-full transform transition-transform ${formData.role === "creator" ? "translate-x-0" : "translate-x-full"}`}></div>
+            <div className="flex justify-between w-full z-10">
+              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "creator" ? "text-white" : "text-gray-600"}`}
+                onClick={() => handleRoleChange("creator")}>
+                Creator
+              </button>
+              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "editor" ? "text-white" : "text-gray-600"}`} onClick={() => handleRoleChange("editor")}>
+                Editor
+              </button>
+            </div>
+          </div>
+        </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col">
                     <label>Email:</label>
@@ -97,7 +116,7 @@ export default function Login() {
 
                 <div className="flex justify-center gap-2">
                     <p className="text-center">Don't have an account?</p>
-                    <Link to="/signin" className="text-blue-500 hover:underline">Sign Up</Link>
+                    <Link to="/signup" className="text-blue-500 hover:underline">Sign Up</Link>
                 </div>
 
             </div>
