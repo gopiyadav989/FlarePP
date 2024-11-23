@@ -1,6 +1,7 @@
 import React from "react";
 
 const CreatorVideoList = ({ videos, onAssignEditor, onWatchVideo }) => {
+  
   const getProgress = (status) => {
     const statusSteps = ["uploaded", "assigned", "edited", "approved", "published"];
     return ((statusSteps.indexOf(status) + 1) / statusSteps.length) * 100;
@@ -13,11 +14,7 @@ const CreatorVideoList = ({ videos, onAssignEditor, onWatchVideo }) => {
           <div key={video._id} className="flex items-center justify-between border p-4 rounded-lg shadow-md bg-white">
             {/* Video Info */}
             <div className="flex items-center space-x-4">
-              <img
-                src={video.thumbnail || "https://via.placeholder.com/150"}
-                alt="Video Thumbnail"
-                className="w-16 h-16 rounded-lg"
-              />
+              <img src={video.thumbnail || "https://via.placeholder.com/150"} alt="Video Thumbnail" className="w-16 h-16 rounded-lg"/>
               <div>
                 <h3 className="text-lg font-semibold text-zinc-950">{video.title}</h3>
                 <p className="text-sm text-gray-600">Uploaded: {new Date(video.createdAt).toLocaleDateString()}</p>
@@ -51,9 +48,7 @@ const CreatorVideoList = ({ videos, onAssignEditor, onWatchVideo }) => {
                   Watch Edited
                 </button>
               )}
-              <button
-                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-                onClick={() => onAssignEditor(video._id)}
+              <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"onClick={() => onAssignEditor(video._id)}
               >
                 Assign Editor
               </button>

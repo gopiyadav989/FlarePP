@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 
 export async function auth(req,res,next) {
     try{
-        // const token = await req.cookies.accessToken;
-        
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InR0QHQiLCJyb2xlIjoiY3JlYXRvciIsImlkIjoiNjc0MTFjOTAyNTZjYTIwMmVjZGZkMzk2IiwiaWF0IjoxNzMyMzIwNDA4fQ.YrEZ02agD_Tt5ugftYxclcbFAWAhV5i-s4BfFXv2zDg";
+        console.log(req.cookies);
+        const token = await req.cookies.accessToken;
+
         if (!token) {
             return res.status(401).json({ message: "token not found" });
         }

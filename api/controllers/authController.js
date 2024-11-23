@@ -41,10 +41,11 @@ export const login = async (req, res) => {
         console.log(token);
 
         const options = {
-            httpOnly: true,
-          };
+            httpOnly: true,       // Ensures the cookie works for navigation within the same site
+        };
         
-        res.cookie("access-token", token, options).status(200).json({
+        
+        res.cookie("accessToken", token, options).status(200).json({
             success: true,
             user: rest,
             token: token,

@@ -17,14 +17,22 @@ export default function CreatorDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("http://localhost:3000/api/videos/");
+        const res = await fetch("http://localhost:3000/api/videos", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+              "Content-Type": "application/json"
+          }
+      })
+        
+
         const data = await res.json();
 
         if (!res.ok) {
           throw new Error(data.message || "Failed to fetch videos");
         }
         console.log(data.videos)
-        setVideoData(data.videos); 
+        setVideoData(data.videos);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -44,9 +52,9 @@ export default function CreatorDashboard() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-           videoId: videoId,
-           editor: "6741018d2fcd6d59273bee8d"
-           }), // Replace with actual editorId
+          videoId: videoId,
+          editor: "6741018d2fcd6d59273bee8d"
+        }), // Replace with actual editorId
       });
 
       const data = await res.json();
@@ -176,7 +184,7 @@ function Sidebar({ open, setOpen }) {
       {/* Header */}
       <div className={` h-20 flex justify-between items-center  px-2 py-2`}>
         <div className={"rounded-md w-10"}>
-          <img src={`https://www.youtube.com/s/desktop/208496d9/img/logos/favicon_144x144.png`} alt="Logo"  className={`${open ? 'w-10' : 'w-16'} rounded-md`}/>
+          <img src={`https://www.youtube.com/s/desktop/208496d9/img/logos/favicon_144x144.png`} alt="Logo" className={`${open ? 'w-10' : 'w-16'} rounded-md`} />
         </div>
       </div>
 
