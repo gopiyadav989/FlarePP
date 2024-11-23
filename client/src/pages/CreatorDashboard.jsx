@@ -1,22 +1,89 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FormPage } from '../components/FormPage.jsx';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import CreatorVideoList from "../components/CreatorVideoList.jsx";
+import FormPage from "../components/FormPage";
 
 export default function CreatorDashboard() {
   const navigate = useNavigate();
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [videoData, setVideoData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetching video data
+  useEffect(() => {
+    const fetchVideos = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("http://localhost:3000/api/videos/");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch videos");
+        }
+        console.log(data.videos)
+        setVideoData(data.videos); 
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  // Assign Editor handler
+  const handleAssignEditor = async (videoId) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/videos/assign-editor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+           videoId: videoId,
+           editor: "6741018d2fcd6d59273bee8d"
+           }), // Replace with actual editorId
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to assign editor");
+      }
+
+      // Update UI after successful editor assignment
+      setVideoData((prev) =>
+        prev.map((video) =>
+          video._id === videoId ? { ...video, status: "assigned" } : video
+        )
+      );
+    } catch (err) {
+      console.error("Error assigning editor:", err.message);
+    }
+  };
+
+  // Watch Video handler
+  const handleWatchVideo = (videoUrl) => {
+    window.open(videoUrl, "_blank");
+  };
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white">
+      {/* Sidebar */}
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
+      {/* Main Section */}
       <main className="flex-1 flex flex-col">
+        {/* Header */}
         <header className="flex justify-between px-8 py-4 border-b border-zinc-400">
           <div>
             <MdMenuOpen
               size={34}
-              className={`cursor-pointer ${!sidebarOpen && 'rotate-180'}`}
+              className={`cursor-pointer ${!sidebarOpen && "rotate-180"}`}
               onClick={() => setSidebarOpen(!sidebarOpen)}
             />
           </div>
@@ -28,24 +95,34 @@ export default function CreatorDashboard() {
           </button>
         </header>
 
+        {/* Content */}
         <div className="flex-1 flex justify-center items-center">
           {showUploadForm ? (
             <FormPage setShowUploadForm={setShowUploadForm} />
           ) : (
-            <div className="text-center">
-              <img
-                src="https://via.placeholder.com/400"
-                alt="Placeholder"
-                className="w-64 h-auto mx-auto rounded"
-              />
-              <p className="text-gray-400 mt-4 italic">Get started by uploading a video</p>
-            </div>
+            " "
+          )}
+        </div>
+        <div className="flex-1 flex justify-center items-center">
+          {loading ? (
+            <p>Loading videos...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : videoData.length === 0 ? (
+            <p>No videos found. Start uploading!</p>
+          ) : (
+            <CreatorVideoList
+              videos={videoData}
+              onAssignEditor={handleAssignEditor}
+              onWatchVideo={handleWatchVideo}
+            />
           )}
         </div>
       </main>
     </div>
   );
 }
+
 
 
 

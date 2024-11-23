@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const FormPage = ({ setShowUploadForm }) => {
+const FormPage = ({ setShowUploadForm }) => {
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnail, setThumbnail] = useState(null);
   const [title, setTitle] = useState('');
@@ -122,3 +122,5 @@ export const FormPage = ({ setShowUploadForm }) => {
     </div>
   );
 };
+
+export default FormPage;
