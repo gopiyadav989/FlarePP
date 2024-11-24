@@ -17,7 +17,7 @@ export default function CreatorDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("http://localhost:3000/api/videos", {
+        const res = await fetch("http://localhost:3000/api/videos/creator-get-videos", {
           method: "GET",
           credentials: "include",
           headers: {
@@ -87,7 +87,7 @@ export default function CreatorDashboard() {
       {/* Main Section */}
       <main className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="flex justify-between px-8 py-4 border-b border-zinc-400">
+        <header className={`flex justify-between ${sidebarOpen? 'ps-[240px] md:px-8 ' : 'ps-[85px] md:px-8'} transition-all  py-4 border-b border-zinc-400`}>
           <div>
             <MdMenuOpen
               size={34}
@@ -104,28 +104,36 @@ export default function CreatorDashboard() {
         </header>
 
         {/* Content */}
-        <div className="flex-1 flex justify-center items-center">
-          {showUploadForm ? (
-            <FormPage setShowUploadForm={setShowUploadForm} />
-          ) : (
-            " "
-          )}
+        <div className="w-full h-screen relative flex items-start justify-center">
+
+          <div className="flex-1 flex justify-center items-center">
+              {loading ? (
+                <p>Loading videos...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : videoData.length === 0 ? (
+                <p>No videos found. Start uploading!</p>
+              ) : (
+                <CreatorVideoList
+                  videos={videoData}
+                  onAssignEditor={handleAssignEditor}
+                  onWatchVideo={handleWatchVideo}
+                />
+              )}
+            </div>
+          <div className= {`w-full h-screen absolute flex  items-center justify-center ${showUploadForm?' bg-black/20 backdrop-blur-md': 'hidden'}`}>
+          <div className="flex-1 flex justify-center items-center absolute z-10">
+            {showUploadForm ? (
+              <FormPage setShowUploadForm={setShowUploadForm} />
+            ) : (
+              " "
+            )}
+          </div>
+          </div>
+
+          
         </div>
-        <div className="flex-1 flex justify-center items-center">
-          {loading ? (
-            <p>Loading videos...</p>
-          ) : error ? (
-            <p className="text-red-500">{error}</p>
-          ) : videoData.length === 0 ? (
-            <p>No videos found. Start uploading!</p>
-          ) : (
-            <CreatorVideoList
-              videos={videoData}
-              onAssignEditor={handleAssignEditor}
-              onWatchVideo={handleWatchVideo}
-            />
-          )}
-        </div>
+
       </main>
     </div>
   );
@@ -179,8 +187,9 @@ const menuItems = [
 
 
 function Sidebar({ open, setOpen }) {
+  const [show , setShow] =useState(false)
   return (
-    <nav className={`shadow-md h-screen p-2 flex flex-col duration-500 bg-zinc-900 text-zinc-50 border-r border-zinc-400 ${open ? 'w-60' : 'w-16'}`}>
+    <nav className={`shadow-md h-screen p-2 flex flex-col duration-500 bg-zinc-900 text-zinc-50 border-r border-zinc-400 z-20 absolute md:relative  ${open ? 'w-60' : 'w-16'}`}>
       {/* Header */}
       <div className={` h-20 flex justify-between items-center  px-2 py-2`}>
         <div className={"rounded-md w-10"}>
@@ -202,13 +211,21 @@ function Sidebar({ open, setOpen }) {
       </ul>
 
       {/* Footer */}
-      <div className='flex items-center gap-2 px-3 py-2'>
-        <div><FaUserCircle size={30} /></div>
-        <div className={`leading-5 ${!open && 'w-0 -translate-x-4'} duration-500 overflow-hidden`}>
-          <p>Saheb</p>
-          <span className='text-xs'>saheb@gmail.com</span>
+      <div className='flex flex-col items-start gap-2 px-3 py-2'>
+        <div className="flex gap-3">
+          <div><FaUserCircle size={30} /></div>
+          <div className={`leading-5 ${!open && 'w-0 -translate-x-4'} duration-500 overflow-hidden`}>
+            <p>Saheb</p>
+            <span className='text-xs'>saheb@gmail.com</span>
+          </div>
         </div>
+          <button className="" onClick={()=>(setShow(!show))}>Log Out</button>
       </div>
+
+      {show&&<div onClick={()=>(setShow(!show))} className="w-screen h-screen absolute bg-black/20 flex  items-center justify-center backdrop-blur-md">
+       
+          hi this  is
+      </div>}
     </nav>
   );
 }

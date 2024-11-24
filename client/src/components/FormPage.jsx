@@ -24,7 +24,7 @@ const FormPage = ({ setShowUploadForm }) => {
       formData.append('title', title);
       formData.append('description', description);
 
-      const response = await fetch("http://localhost:3000/api/videos/uploadVideo", {
+      const response = await fetch("http://localhost:3000/api/videos/creator-upload-video", {
         method: "POST",
         credentials: "include",
         body: formData,

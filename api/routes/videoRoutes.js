@@ -1,12 +1,14 @@
 import express from "express";
 import { auth, isCreator, isEditor } from "../middlewares/auth.js";
-import { getVideos, uploadVideo, assignEditor } from "../controllers/videoController.js";
+import { getVideos, uploadVideo, assignEditor, uploadVideoToYouTube } from "../controllers/videoController.js";
 
 
 const router = express.Router();
 
-router.post("/uploadVideo", auth, isCreator, uploadVideo);
-router.get("/", auth, getVideos);
+router.post("/creator-upload-video", auth, isCreator, uploadVideo);
+router.get("/creator-get-videos", auth, getVideos);
 router.post("/assign-editor", auth, assignEditor);
+
+router.post("/creator-upload-to-youtube", uploadVideoToYouTube);
 
 export default router;

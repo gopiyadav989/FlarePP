@@ -3,6 +3,11 @@ import Editor from "../models/editorModel.js";
 import Video from "../models/videoModel.js";
 import cloudinaryUploader from "../utils/cloudinaryUploader.js"
 
+import { google } from "googleapis";
+import axios from "axios";
+
+const youtube = google.youtube("v3");
+
 export async function uploadVideo(req, res) {
     try {
         const { title, description } = req.body;
@@ -58,6 +63,8 @@ export async function uploadVideo(req, res) {
 }
 
 
+
+
 export async function getVideos(req, res) {
     try {
         const videos = await Video.find({creator: req.user.id})
@@ -100,3 +107,62 @@ export async function assignEditor(req, res) {
         res.status(500).json({ success: false, message: "Failed to assign editor", error: error.message });
     }
 };
+
+
+
+
+
+export const uploadVideoToYouTube = async (req, res) => {
+    const { accessToken, videoUrl, title, description } = req.body;
+  
+    if (!accessToken || !videoUrl || !title || !description) {
+      return res.status(400).json({ message: "Missing required parameters" });
+    }
+  
+    try {
+  
+      const videoStream = await axios({
+          method: "GET",
+          url: videoUrl,
+          responseType: "stream",
+        });
+  
+      // Authenticate the YouTube API client
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({ access_token: accessToken });
+  
+      // Upload video to YouTube
+  
+      const response = await youtube.videos.insert({
+          part: "snippet,status",
+          requestBody: {
+            snippet: {
+              title,
+              description,
+              tags: ["example", "video"],
+            },
+            status: {
+              privacyStatus: "public",
+            },
+          },
+          media: {
+            body: videoStream.data,
+          },
+          auth: oauth2Client,
+        });
+  
+  
+      // Respond with the uploaded video details
+      res.status(200).json({
+        message: "Video uploaded successfully",
+        videoId: response.data.id,
+        link: `https://www.youtube.com/watch?v=${response.data.id}`,
+      });
+  
+  
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      res.status(500).json({ message: "Failed to upload video", error });
+    }
+  };
+  
