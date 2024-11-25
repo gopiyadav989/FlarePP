@@ -11,6 +11,9 @@ import { IoLogoBuffer } from "react-icons/io";
 import { CiSettings } from "react-icons/ci";
 import { MdOutlineDashboard } from "react-icons/md";
 
+import { logout } from '../../redux/reducers/userSlice';
+import { useDispatch } from "react-redux";
+
 
 import { useState } from "react";
 
@@ -51,6 +54,23 @@ export function Sidebar({ open, setOpen }) {
     const { user } = useSelector((state) => state.user);
     console.log(user)
 
+    const dispatch = useDispatch();
+
+  const handleLogout = async() => {
+    try{
+      
+      dispatch(logout());
+      // const res = await fetch('http://localhost:3000/api/auth/logout');
+      // const data = await res.json();
+      
+      
+    }
+    catch(e){
+      console.log(e);
+      console.log("logout fail");
+    }
+  }
+
     return (
         <nav className={` h-screen p-2 flex flex-col duration-500 bg-zinc-900 text-zinc-50 border-r border-zinc-400 z-20   ${open ? 'w-60' : 'w-16'}`}>
 
@@ -90,8 +110,8 @@ export function Sidebar({ open, setOpen }) {
 
             {logoutAlert && <div onClick={() => (setLogoutAlert(!logoutAlert))} className="w-screen h-screen absolute bg-black/20 flex  items-center justify-center backdrop-blur-md">
 
-                <div onClick={(e) => e.stopPropagation()}  className='bg-white h-20 w-20' >
-                    <button onClick={()=>console.log("jfg")} className='bg-black'> hi there</button>
+                <div onClick={(e) => e.stopPropagation()} >
+                <Button onClick={handleLogout}>Logout</Button>
                 </div>
             </div>}
         </nav>

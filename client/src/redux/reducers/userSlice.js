@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  user: null, // Store user details here
-  role: null, // ('editor' or 'creator')
+  user: null,
+  role: null,
+  googleToken: ""
 };
 
 const userSlice = createSlice({
@@ -12,10 +13,12 @@ const userSlice = createSlice({
     login: (state, action) => {
       state.user = action.payload.user;
       state.role = action.payload.role;
+      state.googleToken = action.payload.googleToken;
     },
     logout: (state) => {
       state.user = null;
       state.role = null;
+      state.googleToken = "";
     },
     updateUserDetails:(state, action) => {
         state.user = {...action.payload}

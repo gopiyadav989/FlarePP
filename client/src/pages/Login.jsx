@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {useDispatch} from "react-redux";
-import {login} from "../redux/reducers/userSlice"
+import { useDispatch } from "react-redux";
+import { login } from "../redux/reducers/userSlice"
 import "./../css/LoginSignup.css";
+import OAuth from "../components/OAuth";
 
 export default function Login() {
     const [formData, setFormData] = useState({ role: "creator" });
@@ -19,11 +20,13 @@ export default function Login() {
     };
 
     function handleRoleChange(role) {
+        console.log(formData);
         setFormData((prev) => ({ ...prev, role }));
-      }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(formData);
 
         if (!formData.email || !formData.password) {
             setError("Fill all the fields");
@@ -41,19 +44,19 @@ export default function Login() {
                 },
                 body: JSON.stringify(formData),
             });
-            
+
             const data = await res.json();
-            
+
             if (data.success === false) {
                 setError(data.message);
                 return;
             }
             console.log(data)
             dispatch(login({
-                user:data.user,
+                user: data.user,
                 role: data.user.role
             }))
-            document.cookie = `accessToken=${data.token}; path=/; Secure; SameSite=Strict`;
+            // document.cookie = `accessToken=${data.token}; path=/; Secure; SameSite=Strict`;
             navigate("/");
         } catch (e) {
             setError("error while calling backend");
@@ -67,25 +70,25 @@ export default function Login() {
         <div className="flex items-center justify-center h-screen gap-12">
             {/* Form Section */}
             <div className="shadow-lg w-full max-w-xl p-10 rounded-lg">
-            <div className="mb-7">
-          <h1 className="text-3xl text-center font-bold my-7 uppercase">sign up</h1>
+                <div className="mb-7">
+                    <h1 className="text-3xl text-center font-bold my-7 uppercase">sign in</h1>
 
-          {/* Horizontal Toggle */}
-          <div className="relative w-full h-12 bg-gray-200 rounded-full flex items-center">
-            <div className={`absolute top-0 bottom-0 w-1/2 bg-blue-500 rounded-full transform transition-transform ${formData.role === "creator" ? "translate-x-0" : "translate-x-full"}`}></div>
-            <div className="flex justify-between w-full z-10">
-              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "creator" ? "text-white" : "text-gray-600"}`}
-                onClick={() => handleRoleChange("creator")}>
-                Creator
-              </button>
-              <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "editor" ? "text-white" : "text-gray-600"}`} onClick={() => handleRoleChange("editor")}>
-                Editor
-              </button>
-            </div>
-          </div>
-        </div>
+                    {/* Horizontal Toggle */}
+                    <div className="relative w-full h-12 bg-gray-200 rounded-full flex items-center">
+                        <div className={`absolute top-0 bottom-0 w-1/2 bg-blue-500 rounded-full transform transition-transform ${formData.role === "creator" ? "translate-x-0" : "translate-x-full"}`}></div>
+                        <div className="flex justify-between w-full z-10">
+                            <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "creator" ? "text-white" : "text-gray-600"}`}
+                                onClick={() => handleRoleChange("creator")}>
+                                Creator
+                            </button>
+                            <button className={`w-1/2 text-center py-2 font-medium ${formData.role === "editor" ? "text-white" : "text-gray-600"}`} onClick={() => handleRoleChange("editor")}>
+                                Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col">
+                {formData.role == "editor" && <form onSubmit={handleSubmit} className="flex flex-col">
                     <label>Email:</label>
                     <input
                         type="email"
@@ -111,7 +114,11 @@ export default function Login() {
                     >
                         {loading ? "Signing In..." : "Sign In"}
                     </button>
-                </form>
+                    
+                </form>}
+
+                <div className="flex items-center justify-center"><OAuth role={formData.role} /></div>
+
 
                 {error && <p className="text-red-500">{error}</p>}
 

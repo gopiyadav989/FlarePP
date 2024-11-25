@@ -5,13 +5,13 @@ import Editor from "../models/editorModel.js";
 
 export const login = async (req, res) => {
     const { email, password, role } = req.body;
-    if(!role){
+    if (!role) {
         return res.status(401).json({
             success: false,
             message: "role not found",
         })
     }
-    const Model =  role === "editor" ? Editor : Creator;
+    const Model = role === "editor" ? Editor : Creator;
     try {
 
         const validUser = await Model.findOne({ email });
@@ -43,8 +43,8 @@ export const login = async (req, res) => {
         const options = {
             httpOnly: true,       // Ensures the cookie works for navigation within the same site
         };
-        
-        
+
+
         res.cookie("accessToken", token, options).status(200).json({
             success: true,
             user: rest,
@@ -63,17 +63,91 @@ export const login = async (req, res) => {
     }
 }
 
-
-export const signup = async (req, res) => {
-
-    const { fullName, email, password, role } = req.body
-    if(!role){
+export const loginWithGoogle = async (req, res) => {
+    
+    const {fullName, email, role } = req.body;
+    console.log(req.body);
+    if (!role) {
         return res.status(401).json({
             success: false,
             message: "role not found",
         })
     }
-    const Model =  role === "editor" ? Editor : Creator;
+
+    const Model = role === "editor" ? Editor : Creator;
+
+    try {
+
+        const user = await Model.findOne({ email });
+        if (user) {
+            const payload = {
+                email: user.email,
+                role: user.role,
+                id: user._id,
+            }
+
+            const token = jwt.sign(payload, process.env.JWT_SECRET);
+            const { password: pass, ...rest } = user._doc;
+
+            const options = {
+                httpOnly: true,
+            };
+
+            res.cookie("accessToken", token, options).status(200).json({
+                success: true,
+                user: rest,
+                token: token,
+                message: "user logged in with google"
+            });
+
+        }
+        else{
+
+            const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+            const hashedPassword = await bcrypt.hash(generatedPassword, 7);
+
+            const newUser = new Model({
+                name: fullName,
+                username: fullName.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
+                email,
+                password: hashedPassword,
+                role: role,
+            })
+    
+            await newUser.save();
+            console.log("User created Successfully - google")
+    
+            res.status(201).json({
+                success: true,
+                message: "user created succesfully with google"
+            })
+
+        }
+
+    }
+    catch (error) {
+        console.error("Error during login with google:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "login fail"
+        })
+
+    }
+
+
+}
+
+
+export const signup = async (req, res) => {
+
+    const { fullName, email, password, role } = req.body
+    if (!role) {
+        return res.status(401).json({
+            success: false,
+            message: "role not found",
+        })
+    }
+    const Model = role === "editor" ? Editor : Creator;
 
     try {
 
@@ -111,3 +185,18 @@ export const signup = async (req, res) => {
     }
 
 };
+
+
+export const logout = async (req, res) => {
+    console.log("hi");
+    
+    try{
+        console.log("abc", req.cookies.accessToken);
+        res.clearCookie('accessToken');
+        res.status(200).json('User has been logged out!');
+    }
+    catch(e){
+        console.log("eror");
+        
+    }
+}

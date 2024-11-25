@@ -3,6 +3,7 @@ import { PanelRightOpen } from 'lucide-react';
 import { Sidebar } from "../components/editorComponents/Sidebar";
 import { Button } from "@/components/ui/button";
 
+
 const EditorDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 

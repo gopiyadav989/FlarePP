@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreatorVideoList from "../components/CreatorVideoList.jsx";
 import FormPage from "../components/FormPage";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/reducers/userSlice"
 
 export default function CreatorDashboard() {
   const navigate = useNavigate();
@@ -154,6 +156,7 @@ import { TbReportSearch } from "react-icons/tb";
 import { IoLogoBuffer } from "react-icons/io";
 import { CiSettings } from "react-icons/ci";
 import { MdOutlineDashboard } from "react-icons/md";
+import { Button } from "../components/ui/button.jsx";
 
 
 
@@ -188,6 +191,25 @@ const menuItems = [
 
 function Sidebar({ open, setOpen }) {
   const [show , setShow] =useState(false)
+  const dispatch = useDispatch();
+
+  const handleLogout = async() => {
+    try{
+      
+      dispatch(logout());
+      // const res = await fetch('http://localhost:3000/api/auth/logout');
+      // const data = await res.json();
+      
+      
+    }
+    catch(e){
+      console.log(e);
+      console.log("logout fail");
+    }
+  }
+
+
+
   return (
     <nav className={`shadow-md h-screen p-2 flex flex-col duration-500 bg-zinc-900 text-zinc-50 border-r border-zinc-400 z-20 absolute md:relative  ${open ? 'w-60' : 'w-16'}`}>
       {/* Header */}
@@ -223,8 +245,7 @@ function Sidebar({ open, setOpen }) {
       </div>
 
       {show&&<div onClick={()=>(setShow(!show))} className="w-screen h-screen absolute bg-black/20 flex  items-center justify-center backdrop-blur-md">
-       
-          hi this  is
+        <Button onClick={handleLogout}>Logout</Button>
       </div>}
     </nav>
   );
