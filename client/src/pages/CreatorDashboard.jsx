@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreatorVideoList from "../components/CreatorVideoList.jsx";
 import FormPage from "../components/FormPage";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/reducers/userSlice"
 
 export default function CreatorDashboard() {
@@ -12,6 +12,8 @@ export default function CreatorDashboard() {
   const [videoData, setVideoData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const {googleToken} = useSelector((state)=> state.user);
+  console.log(googleToken);
 
   // Fetching video data
   useEffect(() => {
@@ -23,10 +25,10 @@ export default function CreatorDashboard() {
           method: "GET",
           credentials: "include",
           headers: {
-              "Content-Type": "application/json"
+            "Content-Type": "application/json"
           }
-      })
-        
+        })
+
 
         const data = await res.json();
 
@@ -81,6 +83,40 @@ export default function CreatorDashboard() {
     window.open(videoUrl, "_blank");
   };
 
+  const handleUploadToYouTube = async (videoId) => {
+    try {
+      console.log(videoId,"-",googleToken);
+      const res = await fetch(`http://localhost:3000/api/videos/creator-upload-to-youtube`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          videoId,
+          googleToken
+         }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to upload to YouTube");
+      }
+
+      // Update the status of the video in the UI
+      setVideoData((prev) =>
+        prev.map((video) =>
+          video._id === videoId ? { ...video, status: "published" } : video
+        )
+      );
+
+      alert("Video successfully uploaded to YouTube!");
+    } catch (err) {
+      console.error("Error uploading to YouTube:", err.message);
+      alert("Failed to upload video to YouTube.");
+    }
+  };
+
   return (
     <div className="flex h-screen bg-zinc-950 text-white">
       {/* Sidebar */}
@@ -89,7 +125,7 @@ export default function CreatorDashboard() {
       {/* Main Section */}
       <main className="flex-1 flex flex-col">
         {/* Header */}
-        <header className={`flex justify-between ${sidebarOpen? 'ps-[240px] md:px-8 ' : 'ps-[85px] md:px-8'} transition-all  py-4 border-b border-zinc-400`}>
+        <header className={`flex justify-between ${sidebarOpen ? 'ps-[240px] md:px-8 ' : 'ps-[85px] md:px-8'} transition-all  py-4 border-b border-zinc-400`}>
           <div>
             <MdMenuOpen
               size={34}
@@ -106,34 +142,39 @@ export default function CreatorDashboard() {
         </header>
 
         {/* Content */}
-        <div className="w-full h-screen relative flex items-start justify-center">
+        <div className="w-full h-screen flex items-start justify-center">
 
-          <div className="flex-1 flex justify-center items-center">
-              {loading ? (
-                <p>Loading videos...</p>
-              ) : error ? (
-                <p className="text-red-500">{error}</p>
-              ) : videoData.length === 0 ? (
-                <p>No videos found. Start uploading!</p>
-              ) : (
+          <div className="flex-1 flex justify-center items-center overflow-y-auto">
+            {loading ? (
+              <p>Loading videos...</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : videoData.length === 0 ? (
+              <p>No videos found. Start uploading!</p>
+            ) : (
+              <div className="w-full h-[calc(100vh-4rem)] overflow-y-auto px-4">
                 <CreatorVideoList
                   videos={videoData}
                   onAssignEditor={handleAssignEditor}
                   onWatchVideo={handleWatchVideo}
+                  onUploadToYouTube={handleUploadToYouTube}
                 />
-              )}
-            </div>
-          <div className= {`w-full h-screen absolute flex  items-center justify-center ${showUploadForm?' bg-black/20 backdrop-blur-md': 'hidden'}`}>
-          <div className="flex-1 flex justify-center items-center absolute z-10">
-            {showUploadForm ? (
-              <FormPage setShowUploadForm={setShowUploadForm} />
-            ) : (
-              " "
+              </div>
             )}
           </div>
+
+
+          <div className={`w-full h-screen absolute flex  items-center justify-center ${showUploadForm ? ' bg-black/20 backdrop-blur-md' : 'hidden'}`}>
+            <div className="flex-1 flex justify-center items-center absolute z-10">
+              {showUploadForm ? (
+                <FormPage setShowUploadForm={setShowUploadForm} />
+              ) : (
+                " "
+              )}
+            </div>
           </div>
 
-          
+
         </div>
 
       </main>
@@ -190,19 +231,19 @@ const menuItems = [
 
 
 function Sidebar({ open, setOpen }) {
-  const [show , setShow] =useState(false)
+  const [show, setShow] = useState(false)
   const dispatch = useDispatch();
 
-  const handleLogout = async() => {
-    try{
-      
+  const handleLogout = async () => {
+    try {
+
       dispatch(logout());
       // const res = await fetch('http://localhost:3000/api/auth/logout');
       // const data = await res.json();
-      
-      
+
+
     }
-    catch(e){
+    catch (e) {
       console.log(e);
       console.log("logout fail");
     }
@@ -241,10 +282,10 @@ function Sidebar({ open, setOpen }) {
             <span className='text-xs'>saheb@gmail.com</span>
           </div>
         </div>
-          <button className="" onClick={()=>(setShow(!show))}>Log Out</button>
+        <button className="" onClick={() => (setShow(!show))}>Log Out</button>
       </div>
 
-      {show&&<div onClick={()=>(setShow(!show))} className="w-screen h-screen absolute bg-black/20 flex  items-center justify-center backdrop-blur-md">
+      {show && <div onClick={() => (setShow(!show))} className="w-screen h-screen absolute bg-black/20 flex  items-center justify-center backdrop-blur-md">
         <Button onClick={handleLogout}>Logout</Button>
       </div>}
     </nav>
