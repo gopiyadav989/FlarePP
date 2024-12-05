@@ -88,7 +88,7 @@ export default function Login() {
                     </div>
                 </div>
 
-                {<form onSubmit={handleSubmit} className="flex flex-col">
+                {formData.role == "editor" && <form onSubmit={handleSubmit} className="flex flex-col">
                     <label>Email:</label>
                     <input
                         type="email"

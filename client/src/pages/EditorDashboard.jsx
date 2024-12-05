@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PanelRightOpen } from 'lucide-react';
 import { Sidebar } from "../components/editorComponents/Sidebar";
 import { Button } from "@/components/ui/button";
+import { Outlet } from "react-router-dom";
 
 
 const EditorDashboard = () => {
@@ -28,6 +29,9 @@ const EditorDashboard = () => {
 
 
         <Button>hi there</Button>
+        <div>
+          <Outlet/>
+        </div>
 
       </main>
 
