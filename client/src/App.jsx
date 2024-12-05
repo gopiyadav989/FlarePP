@@ -6,6 +6,8 @@ import EditorDashboard from "./pages/EditorDashboard";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import Tasks from "./pages/editorPages/Task";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -34,12 +36,4 @@ export default function App() {
       </Routes>
     </BrowserRouter>
   );
-}
-
-function Tasks() {
-  return (
-    <div>
-      taksesdfad
-    </div>
-  )
 }
