@@ -61,12 +61,24 @@ const CreatorVideoList = ({ videos, onAssignEditor, onWatchVideo, onUploadToYouT
                       Watch Edited
                     </button>
                   )}
-                  <button
+                  {
+                    video.editor ? (
+                      <button
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm"
+                    onClick={() => onAssignEditor(video._id)}
+                  >
+                    {video.editor.name} 
+                  </button>
+                    ) : (
+                      <button
                     className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm"
                     onClick={() => onAssignEditor(video._id)}
                   >
                     Assign Editor
                   </button>
+                    )
+                  }
+                  
                   <button
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                     onClick={() => onUploadToYouTube(video._id)}

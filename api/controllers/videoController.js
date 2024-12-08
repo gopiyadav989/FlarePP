@@ -62,9 +62,6 @@ export async function uploadVideo(req, res) {
   }
 }
 
-
-
-
 export async function getVideos(req, res) {
   try {
     const videos = await Video.find({ creator: req.user.id })
@@ -80,10 +77,42 @@ export async function getVideos(req, res) {
 };
 
 // Assign an editor to a video
-export async function assignEditor(req, res) {
-  const { videoId, editorId } = req.body;
-  console.log("fvsf");
+export const getAllEditors = async (req, res) => {
+  console.log("hi from edit");
+  
+  try {
+    // Fetch all editors
+    const editors = await Editor.find({})
+      .select('_id name email username avatar');
 
+    // If no editors found
+    if (editors.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'No editors found',
+        editors: [] 
+      });
+    }
+
+    // Return list of editors
+    res.status(200).json({ 
+      success: true,
+      message: 'Editors retrieved successfully',
+      editors 
+    });
+  } catch (error) {
+    console.error('Error fetching editors:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
+// Existing assignEditor function is already well-implemented in the provided code
+export const assignEditor = async (req, res) => {
+  const { videoId, editorId } = req.body;
   try {
     // Check if editor exists
     const editor = await Editor.findById(editorId);
@@ -102,15 +131,23 @@ export async function assignEditor(req, res) {
       return res.status(404).json({ success: false, message: "Video not found" });
     }
 
-    res.status(200).json({ success: true, message: "Editor assigned successfully", video });
+    // Update the editor's assigned videos
+    const updatedEditor = await Editor.findByIdAndUpdate(
+      editorId,
+      { $push: { videos: videoId } },
+      { new: true }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Editor assigned successfully", 
+      video, 
+      editor: updatedEditor 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to assign editor", error: error.message });
   }
 };
-
-
-
-
 
 export const uploadVideoToYouTube = async (req, res) => {
   const { googleToken, videoId } = req.body;

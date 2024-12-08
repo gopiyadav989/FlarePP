@@ -5,18 +5,15 @@ import {
   PlayCircle,
   Check,
   ChevronsUpDown,
-  XCircle
+  XCircle,
+  FileVideo,
+  ImageIcon,
+  UploadCloud,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { 
   Card, 
@@ -25,28 +22,23 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-const VideoUploadWorkflow = () => {
+const VideoUploadWorkflow = ({ setShowUploadForm }) => {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [videoDetails, setVideoDetails] = useState({
     title: '',
     description: '',
     playlist: '',
     visibility: 'private',
-    includedInPlaylist: false,
-    tags: [],
-    monetizationEnabled: false,
     videoFile: null,
     thumbnailFile: null,
-    selectedEditor: null,
-    tagInput: ''
+    selectedEditor: null
   });
   const [editorOpen, setEditorOpen] = useState(false);
   const [visibilityOpen, setVisibilityOpen] = useState(false);
@@ -71,211 +63,335 @@ const VideoUploadWorkflow = () => {
     }));
   };
 
-  const addTag = () => {
-    const tag = videoDetails.tagInput.trim();
-    if (tag && !videoDetails.tags.includes(tag)) {
-      setVideoDetails(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag],
-        tagInput: ''
-      }));
-    }
-  };
-
-  const removeTag = (tagToRemove) => {
+  const handleFileUpload = (type, file) => {
     setVideoDetails(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      [`${type}File`]: file
     }));
   };
 
-  const nextStep = () => setStep(prev => prev + 1);
-  const prevStep = () => setStep(prev => prev - 1);
+  const handleRemoveFile = (type) => {
+    setVideoDetails(prev => ({
+      ...prev,
+      [`${type}File`]: null
+    }));
+  };
 
-  const renderStep = () => {
-    switch(step) {
-      case 1:
-        return (
-          <Card className="w-full max-w-2xl relative bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <PlayCircle className="mr-2" /> Video Details
-              </CardTitle>
-              <CardDescription>Provide comprehensive information about your video</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Title</Label>
-                  <Input 
-                    value={videoDetails.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Enter engaging video title"
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label>Visibility</Label>
-                  <Popover open={visibilityOpen} onOpenChange={(open) => setVisibilityOpen(open)}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between mt-2"
-                      >
-                        {videoDetails.visibility}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandList>
-                          <CommandItem
-                            onSelect={() => {
-                              handleInputChange('visibility', 'private');
-                              setVisibilityOpen(false);
-                            }}
-                          >
-                            <CircleX className="mr-2 text-red-500" /> Private
-                          </CommandItem>
-                          <CommandItem
-                            onSelect={() => {
-                              handleInputChange('visibility', 'public');
-                              setVisibilityOpen(false);
-                            }}
-                          >
-                            <CircleCheck className="mr-2 text-green-500" /> Public
-                          </CommandItem>
-                          <CommandItem
-                            onSelect={() => {
-                              handleInputChange('visibility', 'unlisted');
-                              setVisibilityOpen(false);
-                            }}
-                          >
-                            <CircleCheck className="mr-2 text-yellow-500" /> Unlisted
-                          </CommandItem>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              <div>
-                <Label>Description</Label>
-                <Textarea 
-                  value={videoDetails.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe your video in detail"
-                  className="mt-2 h-24"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Playlist</Label>
-                  <Popover open={playlistOpen} onOpenChange={(open) => setPlaylistOpen(open)}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between mt-2"
-                      >
-                        {videoDetails.playlist || 'Select Playlist'}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandList>
-                          {playlists.map(playlist => (
-                            <CommandItem
-                              key={playlist.id}
-                              onSelect={() => {
-                                handleInputChange('playlist', playlist.name);
-                                handleInputChange('includedInPlaylist', true);
-                                setPlaylistOpen(false);
-                              }}
-                            >
-                              {playlist.name} ({playlist.videoCount} videos)
-                            </CommandItem>
-                          ))}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label>Editors</Label>
-                  <Popover open={editorOpen} onOpenChange={(open) => setEditorOpen(open)}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={editorOpen}
-                        className="w-full justify-between mt-2"
-                      >
-                        {videoDetails.selectedEditor
-                          ? editors.find(
-                              (editor) => editor.id === videoDetails.selectedEditor
-                            )?.name
-                          : "Select editor..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandInput placeholder="Search editors..." />
-                        <CommandList>
-                          <CommandEmpty>No editors found.</CommandEmpty>
-                          <CommandGroup>
-                            {editors.map((editor) => (
-                              <CommandItem
-                                key={editor.id}
-                                value={editor.id}
-                                onSelect={() => {
-                                  handleInputChange('selectedEditor', 
-                                    editor.id === videoDetails.selectedEditor 
-                                      ? null 
-                                      : editor.id
-                                  );
-                                  if (editor.id !== videoDetails.selectedEditor) {
-                                    setEditorOpen(false);
-                                  }
-                                }}
-                                disabled={!editor.availability}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    videoDetails.selectedEditor === editor.id 
-                                      ? "opacity-100" 
-                                      : "opacity-0"
-                                  )}
-                                />
-                                <div className="flex justify-between w-full">
-                                  <span>{editor.name}</span>
-                                  <span className="text-sm text-muted-foreground">{editor.speciality}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      default:
-        return <></>;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!videoDetails.videoFile || !videoDetails.thumbnailFile) {
+      alert('Both video file and thumbnail are required.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('videofile', videoDetails.videoFile);
+      formData.append('thumbnail', videoDetails.thumbnailFile);
+      formData.append('title', videoDetails.title);
+      formData.append('description', videoDetails.description);
+      // formData.append('playlist', videoDetails.playlist);
+      // formData.append('visibility', videoDetails.visibility);
+      
+      const response = await fetch("http://localhost:3000/api/videos/creator-upload-video", {
+        method: "POST",
+        credentials: "include", 
+        body: formData,
+      });
+      
+      console.log(formData);
+      
+      const result = await response.json();
+      if (response.ok) {
+        alert('Video uploaded successfully!');
+        setShowUploadForm(false);
+      } else {
+        alert(`Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      alert('An error occurred while uploading the video. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const isDetailsStepValid = () => {
+    return videoDetails.title.trim() !== '' && 
+           videoDetails.description.trim() !== '' && 
+           videoDetails.visibility !== '';
+  };
+
+  const isFileUploadStepValid = () => {
+    return videoDetails.videoFile !== null && 
+           videoDetails.thumbnailFile !== null;
+  };
+
+  const renderDetailsStep = () => (
+    <Card className="w-full max-w-2xl relative bg-white">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <PlayCircle className="mr-2" /> Video Details
+        </CardTitle>
+        <CardDescription>Provide comprehensive information about your video</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Title</Label>
+            <Input 
+              value={videoDetails.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              placeholder="Enter engaging video title"
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label>Visibility</Label>
+            <Popover open={visibilityOpen} onOpenChange={setVisibilityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between mt-2"
+                >
+                  {videoDetails.visibility}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandList>
+                    {['private', 'public', 'unlisted'].map((visibility) => (
+                      <CommandItem
+                        key={visibility}
+                        onSelect={() => {
+                          handleInputChange('visibility', visibility);
+                          setVisibilityOpen(false);
+                        }}
+                      >
+                        {visibility === 'private' ? (
+                          <CircleX className="mr-2 text-red-500" />
+                        ) : visibility === 'public' ? (
+                          <CircleCheck className="mr-2 text-green-500" />
+                        ) : (
+                          <CircleCheck className="mr-2 text-yellow-500" />
+                        )}
+                        {visibility}
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        
+        <div>
+          <Label>Description</Label>
+          <Textarea 
+            value={videoDetails.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            placeholder="Describe your video in detail"
+            className="mt-2 h-24"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Playlist</Label>
+            <Popover open={playlistOpen} onOpenChange={setPlaylistOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between mt-2"
+                >
+                  {videoDetails.playlist || 'Select Playlist'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandList>
+                    {playlists.map(playlist => (
+                      <CommandItem
+                        key={playlist.id}
+                        onSelect={() => {
+                          handleInputChange('playlist', playlist.name);
+                          setPlaylistOpen(false);
+                        }}
+                      >
+                        {playlist.name} ({playlist.videoCount} videos)
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      </CardContent>
+      <div className="p-4 flex justify-end">
+        <Button 
+          onClick={() => setStep(2)} 
+          disabled={!isDetailsStepValid()}
+        >
+          Next: Upload Files
+        </Button>
+      </div>
+    </Card>
+  );
+
+  const renderFileUploadStep = () => (
+    <Card className="w-full max-w-2xl relative bg-white">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <UploadCloud className="mr-2" /> Upload Files
+        </CardTitle>
+        <CardDescription>Upload your video and thumbnail</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Label className="flex items-center mb-2">
+            <FileVideo className="mr-2" /> Video File
+          </Label>
+          <div className="flex items-center space-x-2">
+            <Input 
+              type="file" 
+              accept="video/*"
+              onChange={(e) => handleFileUpload('video', e.target.files[0])}
+              className="flex-grow"
+            />
+            {videoDetails.videoFile && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => handleRemoveFile('video')}
+              >
+                <XCircle className="text-red-500" />
+              </Button>
+            )}
+          </div>
+          {videoDetails.videoFile && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {videoDetails.videoFile.name} - {(videoDetails.videoFile.size / 1024 / 1024).toFixed(2)} MB
+            </div>
+          )}
+        </div>
+
+        <div>
+          <Label className="flex items-center mb-2">
+            <ImageIcon className="mr-2" /> Thumbnail
+          </Label>
+          <div className="flex items-center space-x-2">
+            <Input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => handleFileUpload('thumbnail', e.target.files[0])}
+              className="flex-grow"
+            />
+            {videoDetails.thumbnailFile && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => handleRemoveFile('thumbnail')}
+              >
+                <XCircle className="text-red-500" />
+              </Button>
+            )}
+          </div>
+          {videoDetails.thumbnailFile && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {videoDetails.thumbnailFile.name} - {(videoDetails.thumbnailFile.size / 1024 / 1024).toFixed(2)} MB
+            </div>
+          )}
+        </div>
+      </CardContent>
+      <div className="p-4 flex justify-between">
+        <Button 
+          variant="outline"
+          onClick={() => setStep(1)}
+        >
+          Back
+        </Button>
+        <Button 
+          onClick={() => setStep(3)}
+          disabled={!isFileUploadStepValid()}
+        >
+          Next: Review
+        </Button>
+      </div>
+    </Card>
+  );
+
+  const renderReviewStep = () => (
+    <Card className="w-full max-w-2xl relative bg-white">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Check className="mr-2" /> Review Upload
+        </CardTitle>
+        <CardDescription>Review and confirm your video details</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label>Title</Label>
+          <p className="mt-2">{videoDetails.title}</p>
+        </div>
+
+        <div>
+          <Label>Description</Label>
+          <p className="mt-2">{videoDetails.description}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Visibility</Label>
+            <p className="mt-2">{videoDetails.visibility}</p>
+          </div>
+          <div>
+            <Label>Playlist</Label>
+            <p className="mt-2">{videoDetails.playlist || 'No playlist selected'}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Video File</Label>
+            <p className="mt-2">
+              {videoDetails.videoFile.name} - {(videoDetails.videoFile.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          </div>
+          <div>
+            <Label>Thumbnail</Label>
+            <p className="mt-2">
+              {videoDetails.thumbnailFile.name} - {(videoDetails.thumbnailFile.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          </div>
+        </div>
+      </CardContent>
+      <div className="p-4 flex justify-between">
+        <Button 
+          variant="outline"
+          onClick={() => setStep(2)}
+        >
+          Back
+        </Button>
+        <Button 
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? 'Uploading...' : 'Confirm Upload'}
+        </Button>
+      </div>
+    </Card>
+  );
+
   return (
-    <div className="py-6">
+    <div className="container mx-auto py-8 max-w-3xl">
       <Progress value={(step / 3) * 100} className="mb-6" />
-      {renderStep()}
+      
+      {step === 1 && renderDetailsStep()}
+      {step === 2 && renderFileUploadStep()}
+      {step === 3 && renderReviewStep()}
     </div>
   );
 };

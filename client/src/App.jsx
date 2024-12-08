@@ -7,6 +7,7 @@ import CreatorDashboard from "./pages/CreatorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Tasks from "./pages/editorPages/Task";
+import EditorVideoList from "./components/EditorVideoList";
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
           <ProtectedRoute role="editor">
             <EditorDashboard />
           </ProtectedRoute>}>
-          
+          <Route path="" element={<EditorVideoList/>}/>
           <Route path="tasks" element={<Tasks />} />
         </Route>
 

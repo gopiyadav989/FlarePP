@@ -5,7 +5,8 @@ import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
-import videoRoutes from "./routes/videoRoutes.js"
+import videoRoutes from "./routes/videoRoutes.js";
+import editorRoutes from "./routes/editorRoutes.js";
 
 dotenv.config();
 import connectToDatabase from "./config/database.js";
@@ -28,6 +29,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/videos",videoRoutes);
+app.use("/api/editor",editorRoutes);
 
 app.get("/", (req, res) => {
   return res.json({
