@@ -8,7 +8,10 @@ const router = express.Router();
 
 // In your routes file
 router.get('/assigned-videos',  auth, isEditor, getAssignedVideos);
-router.patch('/upload-edited-video/:videoId', auth, isEditor, uploadEditedVideo);
+router.post('/upload-edited-video/:videoId',(req,res,next)=>{
+    console.log("ji");
+    next();
+}, auth, uploadEditedVideo);
 
 
 export default router;

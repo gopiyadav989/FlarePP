@@ -1,19 +1,19 @@
 import jwt from "jsonwebtoken";
 
 export async function auth(req,res,next) {
+    
     try{
-        
+
         const token = await req.cookies.accessToken;
 
         if (!token) {
             return res.status(401).json({ message: "token not found" });
         }
-
-    
-
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         
         req.user = decodedToken;
+        
+        
         next();
 
     }

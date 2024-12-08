@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Download, 
-  Play, 
-  Upload, 
-  Edit, 
-  VideoIcon 
+import {
+  Download,
+  Play,
+  Upload,
+  Edit,
+  VideoIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+import UploadEditedVideoDialog from './editorComponents/UploadEditedVideoDialog';
 
 const EditorVideoList = () => {
   const [assignedVideos, setAssignedVideos] = useState([]);
@@ -55,61 +57,6 @@ const EditorVideoList = () => {
 
     fetchAssignedVideos();
   }, []);
-
-  const handleFileUpload = async (videoId, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('editedVideo', file);
-      
-      try {
-        // Simulate upload progress
-        setUploadProgress(prev => ({
-          ...prev,
-          [videoId]: { progress: 0, status: 'uploading' }
-        }));
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('PATCH', `http://localhost:3000/api/editor/upload-edited-video/${videoId}`, true);
-        
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = Math.round((e.loaded * 100) / e.total);
-            setUploadProgress(prev => ({
-              ...prev,
-              [videoId]: { progress: percentComplete, status: 'uploading' }
-            }));
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            setUploadProgress(prev => ({
-              ...prev,
-              [videoId]: { progress: 100, status: 'success' }
-            }));
-            // Update video list or show success notification
-          } else {
-            setUploadProgress(prev => ({
-              ...prev,
-              [videoId]: { progress: 0, status: 'error' }
-            }));
-          }
-        };
-
-        xhr.onerror = () => {
-          setUploadProgress(prev => ({
-            ...prev,
-            [videoId]: { progress: 0, status: 'error' }
-          }));
-        };
-
-        xhr.send(formData);
-      } catch (error) {
-        console.error('Video upload failed', error);
-      }
-    }
-  };
 
   const VideoPreviewDialog = ({ video }) => (
     <Dialog>
@@ -155,8 +102,8 @@ const EditorVideoList = () => {
               {video.title}
               <Badge variant={
                 video.status === 'assigned' ? 'secondary' :
-                video.status === 'edited' ? 'outline' :
-                'default'
+                  video.status === 'edited' ? 'outline' :
+                    'default'
               }>
                 {video.status}
               </Badge>
@@ -165,9 +112,9 @@ const EditorVideoList = () => {
           </CardHeader>
           <CardContent>
             <div className="relative mb-4">
-              <img 
-                src={video.thumbnail} 
-                alt={video.title} 
+              <img
+                src={video.thumbnail}
+                alt={video.title}
                 className="w-full h-48 object-cover rounded-md"
               />
               <div className="absolute top-2 right-2">
@@ -177,8 +124,8 @@ const EditorVideoList = () => {
 
             <div className="space-y-2">
               {/* Download Original */}
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 className="w-full"
                 onClick={() => window.open(video.creatorUploadedVideo, '_blank')}
               >
@@ -186,25 +133,33 @@ const EditorVideoList = () => {
               </Button>
 
               {/* Upload Edited Video */}
-              <input 
-                type="file" 
+              <input
+                type="file"
                 accept="video/*"
                 id={`upload-${video._id}`}
                 className="hidden"
-                onChange={(e) => handleFileUpload(video._id, e)}
+                onChange={(e) => handleVideoUpload(video._id)}
               />
               <label htmlFor={`upload-${video._id}`} className="w-full">
-                <Button variant="default" className="w-full">
-                  <Edit className="mr-2 h-4 w-4" /> Upload Edited Video
-                </Button>
+                <UploadEditedVideoDialog
+                  videoId={video._id}
+                  onVideoUpload={(updatedVideo) => {
+                    // Update the video in the list
+                    setAssignedVideos(prevVideos =>
+                      prevVideos.map(v =>
+                        v._id === updatedVideo._id ? updatedVideo : v
+                      )
+                    );
+                  }}
+                />
               </label>
 
               {/* Upload Progress */}
               {uploadProgress[video._id] && (
                 <div className="mt-2">
                   {uploadProgress[video._id].status === 'uploading' && (
-                    <Progress 
-                      value={uploadProgress[video._id].progress} 
+                    <Progress
+                      value={uploadProgress[video._id].progress}
                       className="w-full"
                     />
                   )}

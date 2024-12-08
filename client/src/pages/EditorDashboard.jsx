@@ -8,38 +8,8 @@ const EditorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleVideoUpload = async (videoId, formData) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/editor/upload-edited-video/${videoId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
+  
 
-      if (!response.ok) {
-        throw new Error('Video upload failed');
-      }
-
-      const updatedVideo = await response.json();
-      setAssignedVideos(prevVideos => 
-        prevVideos.map(video => 
-          video._id === videoId ? updatedVideo : video
-        )
-      );
-
-      return updatedVideo;
-    } catch (err) {
-      console.error('Upload error:', err);
-      throw err;
-    }
-  };
-
-  const handleWatchVideo = (videoUrl) => {
-    window.open(videoUrl, '_blank');
-  };
 
   if(assignedVideos == null) {
     <div>
