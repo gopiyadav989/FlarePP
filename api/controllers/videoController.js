@@ -209,3 +209,29 @@ export const uploadVideoToYouTube = async (req, res) => {
     res.status(500).json({ message: "Failed to upload video", error });
   }
 };
+
+export async function searchVideos(req, res) {
+  try {
+    const { query } = req.query; // Get the search query from the request query parameters
+
+    if (!query) {
+      return res.status(400).json({ success: false, message: "Search query is required" });
+    }
+
+    const videos = await Video.find({
+      creator: req.user.id,
+      title: { $regex: query, $options: "i" }, // Case-insensitive search using regex
+    })
+      .select("title thumbnail status createdAt") // Selecting relevant fields
+      .populate("creator", "name username");
+
+    if (videos.length === 0) {
+      return res.status(404).json({ success: false, message: "No videos found" });
+    }
+
+    return res.status(200).json({ success: true, videos });
+  } catch (error) {
+    console.error("Error searching videos:", error);
+    res.status(500).json({ success: false, message: "Failed to search videos", error: error.message });
+  }
+}

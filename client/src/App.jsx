@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Tasks from "./pages/editorPages/Task";
 import EditorVideoList from "./components/EditorVideoList";
 import CreatorVideoList from "./components/CreatorVideoList";
+import SearchPage from "./components/creatorComponents/SearchPage";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
             <CreatorDashboard />
           </ProtectedRoute>}>
           <Route path="" element={<CreatorVideoList />} />
+          <Route path="search" element={<SearchPage />} />
         </Route>
 
       </Routes>
