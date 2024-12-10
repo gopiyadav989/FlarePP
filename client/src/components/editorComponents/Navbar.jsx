@@ -18,6 +18,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
+import { logout } from '../../redux/reducers/userSlice';
 
 // Sample notifications data for fallback
 const sampleNotifications = [
@@ -150,6 +151,11 @@ const Navbar = () => {
     }
   };
 
+  function handleLogout() {
+    dispatch(logout());
+    navigate('/login');
+  }
+
   return (
     <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-lg sticky top-0 z-50">
       <div className="px-6 py-4 flex items-center justify-between">
@@ -241,10 +247,10 @@ const Navbar = () => {
                 {user?.name || 'Loading...'}
               </span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-zinc-900 border-zinc-800">
+            <DropdownMenuContent className="w-56 bg-zinc-900 border-zinc-800 text-white">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem className="gap-2" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
                 <span>Log Out</span>
               </DropdownMenuItem>
