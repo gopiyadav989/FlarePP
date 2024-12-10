@@ -232,6 +232,7 @@ const CreatorVideoList = () => {
               <ThumbsDown className="mr-2 h-4 w-4" /> Reject and Request Re-edit
             </Button>
             <Button
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
               variant="success"
               onClick={() => handleVideoAction("approve", video._id)}
             >

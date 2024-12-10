@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import ProfilePage from '../Profile';
+
 const ProfileDropdown = ({ children }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -21,25 +23,29 @@ const ProfileDropdown = ({ children }) => {
     navigate('/login');
   }
 
+  function handleProfileClick() {
+    navigate('profile');
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {children}
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-56" 
+      <DropdownMenuContent
+        className="w-56"
         align="end"
         sideOffset={5}
       >
         <DropdownMenuGroup>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate('/profile')}
+            onClick={handleProfileClick}
           >
             <User className="h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => navigate('/settings')}
           >
@@ -47,7 +53,7 @@ const ProfileDropdown = ({ children }) => {
             <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer text-red-500 focus:text-red-500"
             onClick={handleLogout}
           >

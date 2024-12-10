@@ -15,6 +15,7 @@ import InProgress from "./pages/editorPages/InProgress";
 import Revisions from "./pages/editorPages/Revisions";
 import Completed from "./pages/editorPages/Completed";
 import Messages from "./pages/editorPages/Messages";
+import ProfilePage from "./components/Profile";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
           </ProtectedRoute>}>
           <Route path="" element={<CreatorVideoList />} />
           <Route path="search" element={<SearchPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
       </Routes>
