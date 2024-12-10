@@ -29,15 +29,10 @@ const Dock = () => {
     return (
       <Link
         to={href}
-        className={cn(
-          "group relative flex flex-col items-center",
-          isActive && "text-blue-500"
-        )}
+        className={cn("group relative flex flex-col items-center", isActive && "text-blue-500")}
         aria-label={title}>
         <div className="relative">
-          <div className={cn(
-            "p-3 rounded-full transition-all",
-            isActive ? "bg-blue-500/10" : "hover:bg-zinc-800")}>
+          <div className={cn("p-3 rounded-full transition-all", isActive ? "bg-blue-500/10" : "hover:bg-zinc-800")}>
             {icon}
           </div>
           {badge && (
@@ -60,8 +55,15 @@ const Dock = () => {
     );
   };
 
+  const isMessagesRoute = location.pathname === "/editor-dashboard/messages";
+
   return (
-    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
+    <div className={cn(
+      "fixed bottom-8 left-1/2 transform -translate-x-1/2",
+      isMessagesRoute && "left-4 transform-none", 
+      "transition-all duration-300 ease-in-out"
+    )}>
+    {/* <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2"> */}
       <div className="bg-zinc-900/90 backdrop-blur-sm rounded-full p-2 shadow-lg border border-zinc-800">
         <div className="flex items-center gap-5">
           {links.map((link, index) => (

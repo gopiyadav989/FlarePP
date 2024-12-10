@@ -8,27 +8,7 @@ const menuItems = [
     {
         icons: <Home size={30} />,
         label: 'Home',
-    },
-    {
-        icons: <Box size={30} />,
-        label: 'Products',
-    },
-    {
-        icons: <LayoutDashboard size={30} />,
-        label: 'Dashboard',
-    },
-    {
-        icons: <Settings size={30} />,
-        label: 'Setting',
-    },
-    {
-        icons: <BookOpen size={30} />,
-        label: 'Log',
-    },
-    {
-        icons: <Search size={30} />,
-        label: 'Report',
-    },
+    }
 ];
 
 export function Sidebar({ open, setOpen }) {

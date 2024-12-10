@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Search, UserCircle, SendHorizontal } from 'lucide-react';
 
 const Messages = () => {
@@ -41,27 +42,46 @@ const Messages = () => {
   ];
 
   // Search Users
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setSearchResults(
       hardcodedUsers.filter(user =>
         user.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
+    // try {
+    //   const response = await axios.get(`/api/messages/search-users?query=${searchQuery}`);
+    //   setSearchResults(response.data.users);
+    // } catch (error) {
+    //   console.error('Search failed', error);
+    // }
   };
 
   // Fetch Conversations
-  const fetchConversations = () => {
+  const fetchConversations = async () => {
     setConversations(hardcodedConversations);
+    // try {
+    //   const response = await axios.get('/api/messages/conversations');
+    //   setConversations(response.data.conversations);
+    // } catch (error) {
+    //   console.error('Fetch conversations failed', error);
+    // }
   };
 
   // Select Conversation Partner
-  const selectPartner = (partner) => {
+  const selectPartner = async (partner) => {
     setSelectedPartner(partner);
     setMessages(hardcodedMessages);
+    // setSelectedPartner(partner);
+    // try {
+    //   const response = await axios.get(`/api/messages/conversation/${partner._id}`);
+    //   setMessages(response.data.messages);
+    // } catch (error) {
+    //   console.error('Fetch messages failed', error);
+    // }
   };
 
   // Send Message
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() || !selectedPartner) return;
 
     const tempMessage = {
@@ -71,6 +91,20 @@ const Messages = () => {
 
     setMessages((prev) => [...prev, tempMessage]);
     setNewMessage('');
+    // if (!newMessage.trim() || !selectedPartner) return;
+
+    // try {
+    //   await axios.post('/api/messages/send', {
+    //     recipientId: selectedPartner._id,
+    //     content: newMessage
+    //   });
+    //   setNewMessage('');
+    //   // Refresh messages
+    //   const response = await axios.get(`/api/messages/conversation/${selectedPartner._id}`);
+    //   setMessages(response.data.messages);
+    // } catch (error) {
+    //   console.error('Send message failed', error);
+    // }
   };
 
   useEffect(() => {
@@ -168,8 +202,8 @@ const Messages = () => {
                 <div
                   key={index}
                   className={`flex ${msg.sender._id === selectedPartner._id
-                    ? 'justify-start'
-                    : 'justify-end'
+                      ? 'justify-start'
+                      : 'justify-end'
                     }`}
                 >
                   <div className={`
