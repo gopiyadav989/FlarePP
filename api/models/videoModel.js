@@ -27,6 +27,14 @@ const videoSchema = new mongoose.Schema({
     editorUploadedVideo: {
         type: String,
     },
+    revisions: {
+        type: Number,
+        default: 0
+    },
+    youtubePublishDetails: {
+        videoId: String,
+        publishedAt: Date
+    },
     status: {
         type: String,
         enum: ["uploaded", "assigned", "edited", "approved", "published"],

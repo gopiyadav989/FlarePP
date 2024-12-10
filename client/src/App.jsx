@@ -6,10 +6,15 @@ import EditorDashboard from "./pages/EditorDashboard";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import Tasks from "./pages/editorPages/Task";
-import EditorVideoList from "./components/EditorVideoList";
 import CreatorVideoList from "./components/CreatorVideoList";
 import SearchPage from "./components/creatorComponents/SearchPage";
+
+// Pages for Editor Dashboard
+import EditorVideoList from "./components/EditorVideoList";
+import InProgress from "./pages/editorPages/InProgress";
+import Revisions from "./pages/editorPages/Revisions";
+import Completed from "./pages/editorPages/Completed";
+import Messages from "./pages/editorPages/Messages";
 
 export default function App() {
   return (
@@ -26,8 +31,11 @@ export default function App() {
           <ProtectedRoute role="editor">
             <EditorDashboard />
           </ProtectedRoute>}>
-          <Route path="" element={<EditorVideoList/>}/>
-          <Route path="tasks" element={<Tasks />} />
+          <Route path="" element={<EditorVideoList />} />
+          <Route path="in-progress" element={<InProgress />} />
+          <Route path="revisions" element={<Revisions />} />
+          <Route path="completed" element={<Completed />} />
+          <Route path="messages" element={<Messages />} />
         </Route>
 
         <Route path="creator-dashboard" element={

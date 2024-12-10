@@ -7,6 +7,8 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 import editorRoutes from "./routes/editorRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+
 
 dotenv.config();
 import connectToDatabase from "./config/database.js";
@@ -30,6 +32,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/videos",videoRoutes);
 app.use("/api/editor",editorRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.get("/", (req, res) => {
   return res.json({

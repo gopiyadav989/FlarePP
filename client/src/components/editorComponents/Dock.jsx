@@ -1,78 +1,43 @@
 import React from "react";
-import { 
-  Video, 
-  Upload, 
-  Home, 
-  Clock, 
-  CheckCircle, 
+import {
+  Video,
+  Upload,
+  Home,
+  Clock,
+  CheckCircle,
   AlertCircle,
   Settings,
   MessageCircle
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-const useLocation = () => ({ pathname: "/editor-dashboard" });
-const Link = ({ to, className, children }) => (
-  <div className={className}>{children}</div>
-);
 
 const Dock = () => {
   const location = useLocation();
-  
+
   const links = [
-    {
-      title: "Dashboard",
-      icon: <Home className="h-5 w-5" />,
-      href: "/editor-dashboard",
-      description: "Overview and analytics",
-      badge: null
-    },
-    {
-      title: "In Progress",
-      icon: <Clock className="h-5 w-5" />,
-      href: "/editor-dashboard/in-progress",
-      description: "Currently editing",
-      badge: 2
-    },
-    {
-      title: "Revisions",
-      icon: <AlertCircle className="h-5 w-5" />,
-      href: "/editor-dashboard/revisions",
-      description: "Need modifications",
-      badge: 1
-    },
-    {
-      title: "Completed",
-      icon: <CheckCircle className="h-5 w-5" />,
-      href: "/editor-dashboard/completed",
-      description: "Videos Live on Youtube",
-      badge: null
-    },
-    {
-      title: "Messages",
-      icon: <MessageCircle className="h-5 w-5" />,
-      href: "/editor-dashboard/messages",
-      description: "Creator communications",
-      badge: 5
-    }
+    { title: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/editor-dashboard", description: "Overview and analytics", badge: null },
+    { title: "In Progress", icon: <Clock className="h-5 w-5" />, href: "/editor-dashboard/in-progress", description: "Currently editing", badge: 2 },
+    { title: "Revisions", icon: <AlertCircle className="h-5 w-5" />, href: "/editor-dashboard/revisions", description: "Need modifications", badge: 1 },
+    { title: "Completed", icon: <CheckCircle className="h-5 w-5" />, href: "/editor-dashboard/completed", description: "Videos Live on Youtube", badge: null },
+    { title: "Messages", icon: <MessageCircle className="h-5 w-5" />, href: "/editor-dashboard/messages", description: "Creator communications", badge: 5 }
   ];
 
   const DockItem = ({ title, icon, href, description, badge }) => {
     const isActive = location.pathname === href;
 
     return (
-      <Link 
-        to={href} 
+      <Link
+        to={href}
         className={cn(
           "group relative flex flex-col items-center",
           isActive && "text-blue-500"
         )}
-      >
+        aria-label={title}>
         <div className="relative">
           <div className={cn(
             "p-3 rounded-full transition-all",
-            isActive ? "bg-blue-500/10" : "hover:bg-zinc-800"
-          )}>
+            isActive ? "bg-blue-500/10" : "hover:bg-zinc-800")}>
             {icon}
           </div>
           {badge && (
@@ -90,8 +55,7 @@ const Dock = () => {
         <div className={cn(
           "absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500",
           isActive ? "scale-100" : "scale-0 group-hover:scale-100",
-          "transition-all"
-        )} />
+          "transition-all")} />
       </Link>
     );
   };
