@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { login } from "../redux/reducers/userSlice"
 import { useNavigate } from "react-router-dom";
 
-const CLIENT_ID = "1008178499286-83qh7731dhnns5g66tku3u1ablr1ml83.apps.googleusercontent.com";
+const CLIENT_ID = "173852556484-3c302oeh2nqs108mqhn936f8sn5m6fs7.apps.googleusercontent.com";
 
 const SCOPES = "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.upload ";
 

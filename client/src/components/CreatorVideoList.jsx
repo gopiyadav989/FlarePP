@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -42,6 +38,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
+import { useSelector } from "react-redux";
+import EditorAssignmentModal from "./creatorComponents/EditorAssignmentModal";
+import {uploadVideoToYouTube} from "./creatorComponents/youtubeService"
 
 const STATUS_CONFIG = {
   uploaded: {
@@ -118,78 +117,47 @@ const CreatorVideoList = () => {
     fetchVideos();
   }, []);
 
-  const handleVideoAction = async (action, videoId, additionalData = {}) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/videos/${videoId}/${action}`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(additionalData)
-        }
-      );
+  const handleVideoAction = async (action, videoId) => {
+    if (action === "approve" && googleToken) {
+      try {
+        // Call the YouTube upload function directly
+        const uploadResult = await uploadVideoToYouTube(videoId, googleToken);
 
-      if (!response.ok) {
-        throw new Error(`Failed to ${action} video`);
+        // Update the video state with the YouTube upload status
+        setVideos((prevVideos) =>
+          prevVideos.map((video) =>
+            video._id === videoId
+              ? {
+                  ...video,
+                  youtubeUploadStatus: "uploaded",
+                  youtubeVideoId: uploadResult.videoId,
+                  youtubeLink: uploadResult.link,
+                }
+              : video
+          )
+        );
+
+        toast({
+          title: "Success",
+          description: "Video uploaded to YouTube successfully",
+          variant: "default",
+        });
+      } catch (error) {
+        console.error("YouTube Upload Failed:", error);
+
+        toast({
+          title: "Error",
+          description: error.message || "Failed to upload video to YouTube",
+          variant: "destructive",
+        });
       }
-
-      const updatedVideos = videos.map(video => 
-        video._id === videoId 
-          ? { ...video, status: additionalData.status || video.status }
-          : video
-      );
-
-      setVideos(updatedVideos);
-      
-      setReviewingVideo(null);
-
+    } else if (action === "reject") {
+      // Handle the reject or review case (if any logic is needed here)
       toast({
-        title: "Success",
-        description: `Video ${action} successfully`,
-        variant: "default"
+        title: "Video Rejected",
+        description: "The video has been sent for re-editing.",
+        variant: "default",
       });
-    } catch (err) {
-      console.error(`Error ${action} video:`, err);
-      
-      toast({
-        title: "Error",
-        description: `Failed to ${action} video`,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const assignEditorToVideo = async (videoId, editorId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/videos/assign-editor`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            videoId,
-            editorId,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to assign editor');
-      }
-
-      setVideos(videos.map(video =>
-        video._id === videoId
-          ? { ...video, status: 'assigned', editorId }
-          : video
-      ));
-    } catch (error) {
-      throw error;
     }
   };
 
