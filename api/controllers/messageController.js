@@ -73,18 +73,16 @@ export const sendMessage = async (req, res) => {
 export const getConversations = async (req, res) => {
     try {
         const userId = req.user.id;
-        const userRole = req.user.role;
-
         // Find unique conversation partners
         const conversations = await Message.aggregate([
             {
                 $match: {
                     $or: [
-                        { 
+                        {
                             sender: new mongoose.Types.ObjectId(userId),
                             senderModel: userRole === 'editor' ? 'Editor' : 'Creator'
                         },
-                        { 
+                        {
                             recipient: new mongoose.Types.ObjectId(userId),
                             recipientModel: userRole === 'editor' ? 'Editor' : 'Creator'
                         }
@@ -102,17 +100,17 @@ export const getConversations = async (req, res) => {
                     },
                     lastMessage: { $last: '$content' },
                     lastMessageTime: { $last: '$createdAt' },
-                    unreadCount: { 
-                        $sum: { 
+                    unreadCount: {
+                        $sum: {
                             $cond: [
-                                { 
+                                {
                                     $and: [
                                         { $ne: ['$recipient', new mongoose.Types.ObjectId(userId)] },
                                         { $eq: ['$status', 'unread'] }
                                     ]
-                                }, 
-                                1, 
-                                0 
+                                },
+                                1,
+                                0
                             ]
                         }
                     }
@@ -161,18 +159,18 @@ export const getConversationMessages = async (req, res) => {
 
         const messages = await Message.find({
             $or: [
-                { 
-                    sender: userId, 
-                    recipient: partnerId 
+                {
+                    sender: userId,
+                    recipient: partnerId
                 },
-                { 
-                    sender: partnerId, 
-                    recipient: userId 
+                {
+                    sender: partnerId,
+                    recipient: userId
                 }
             ]
         })
-        .sort({ createdAt: 1 })
-        .populate('sender', 'name avatar');
+            .sort({ createdAt: 1 })
+            .populate('sender', 'name avatar');
 
         res.status(200).json({
             message: "Conversation messages retrieved successfully",
@@ -181,6 +179,33 @@ export const getConversationMessages = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Failed to retrieve conversation messages",
+            error: error.message
+        });
+    }
+};
+
+
+export const markMessagesAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const sender = req.body.sender;
+
+        // Mark messages as read for this sender and recipient pair
+        await Message.updateMany(
+            {
+                sender,
+                recipient: userId,
+                status: 'unread'
+            },
+            { status: 'read' }
+        );
+
+        res.status(200).json({
+            message: "Messages marked as read"
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to mark messages as read",
             error: error.message
         });
     }
