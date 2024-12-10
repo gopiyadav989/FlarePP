@@ -5,7 +5,6 @@ import cloudinaryUploader from '../utils/cloudinaryUploader.js';
 
 // Get all videos assigned to the current editor
 export const getAssignedVideos = async (req, res) => {
-  console.log("hi from editor con");
 
   try {
     // Check if the user is an editor
@@ -39,7 +38,7 @@ export const getAssignedVideos = async (req, res) => {
 
 // Upload edited video by an editor
 export const uploadEditedVideo = async (req, res) => {
-  console.log("hi");
+
   try {
     const { videoId } = req.params;
     const editorId = req.user.id; // Assuming auth middleware adds user to request

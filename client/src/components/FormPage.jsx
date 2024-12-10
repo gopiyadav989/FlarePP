@@ -1,12 +1,35 @@
-import { useState } from 'react';
-import { Upload, FileText, Image, Video, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  FileUp, 
+  FileText, 
+  ImageIcon, 
+  Video, 
+  X, 
+  UploadCloud 
+} from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
-const FormPage = ({ setShowUploadForm }) => {
+const FormPage = ({ isOpen, onClose }) => {
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnail, setThumbnail] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const videoInputRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,24 +44,39 @@ const FormPage = ({ setShowUploadForm }) => {
       formData.append('thumbnail', thumbnail);
       formData.append('title', title);
       formData.append('description', description);
-      const response = await fetch("http://localhost:3000/api/videos/creator-upload-video", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-      console.log(formData);
-      const result = await response.json();
-      if (response.ok) {
-        alert('Video uploaded successfully!');
-        setShowUploadForm(false);
-      } else {
-        alert(`Error: ${result.message}`);
-      }
+      
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "http://localhost:3000/api/videos/creator-upload-video", true);
+      xhr.withCredentials = true;
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(percentComplete);
+        }
+      };
+
+      xhr.onload = () => {
+        setLoading(false);
+        if (xhr.status === 200) {
+          alert('Video uploaded successfully!');
+          onClose();
+        } else {
+          const result = JSON.parse(xhr.responseText);
+          alert(`Error: ${result.message}`);
+        }
+      };
+
+      xhr.onerror = () => {
+        setLoading(false);
+        alert('An error occurred while uploading the video. Please try again.');
+      };
+
+      xhr.send(formData);
     } catch (error) {
       console.error('Error uploading video:', error);
-      alert('An error occurred while uploading the video. Please try again.');
-    } finally {
       setLoading(false);
+      alert('An error occurred while uploading the video. Please try again.');
     }
   };
 
@@ -54,157 +92,156 @@ const FormPage = ({ setShowUploadForm }) => {
   const clearFile = (type) => {
     if (type === 'video') {
       setVideoFile(null);
+      if (videoInputRef.current) videoInputRef.current.value = '';
     } else if (type === 'thumbnail') {
       setThumbnail(null);
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
     }
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl rounded-xl p-6 space-y-6 relative">
-      <button 
-        onClick={() => setShowUploadForm(false)}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-      >
-        <X className="w-6 h-6" />
-      </button>
-
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-          Upload Your Video
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Share your content with the world
-        </p>
+  const FileSelector = ({ 
+    type, 
+    icon: Icon, 
+    file, 
+    label, 
+    inputRef 
+  }) => (
+    <div className="space-y-2">
+      <Label className="flex items-center text-gray-700 dark:text-gray-300">
+        <Icon className="mr-2 h-4 w-4" />
+        {label}
+      </Label>
+      <div className="relative">
+        <input
+          type="file"
+          ref={inputRef}
+          accept={type === 'video' ? 'video/*' : 'image/*'}
+          onChange={(e) => handleFileChange(type, e)}
+          className="hidden"
+          id={`${type}-upload`}
+        />
+        <label 
+          htmlFor={`${type}-upload`} 
+          className="group cursor-pointer"
+        >
+          <div className={`
+            flex items-center justify-between 
+            border-2 border-dashed 
+            ${file 
+              ? 'border-green-500 bg-green-50 dark:bg-green-900/30' 
+              : 'border-gray-300 hover:border-blue-500 dark:border-gray-700'}
+            p-3 rounded-lg transition-all
+          `}>
+            <span className="flex-grow truncate text-sm text-gray-600 dark:text-gray-400">
+              {file 
+                ? `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)` 
+                : `Select ${label}`}
+            </span>
+            {file ? (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="ml-2 text-red-500 hover:text-red-700"
+                onClick={(e) => {
+                  e.preventDefault();
+                  clearFile(type);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            ) : (
+              <UploadCloud className="h-5 w-5 text-gray-400 group-hover:text-blue-500" />
+            )}
+          </div>
+        </label>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label 
-            htmlFor="title" 
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            <FileText className="inline-block w-4 h-4 mr-2 mb-1" />
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter video title"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
-            required
-          />
-        </div>
-
-        <div>
-          <label 
-            htmlFor="description" 
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe your video"
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
-            required
-          />
-        </div>
-
-        <div>
-          <label 
-            htmlFor="videofile" 
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            <Video className="inline-block w-4 h-4 mr-2 mb-1" />
-            Video File
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="file"
-              id="videofile"
-              name="videofile"
-              accept="video/*"
-              onChange={(e) => handleFileChange('video', e)}
-              className="hidden"
-              required
-            />
-            <label 
-              htmlFor="videofile" 
-              className="flex-grow px-4 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              {videoFile 
-                ? `${videoFile.name} (${(videoFile.size / 1024 / 1024).toFixed(2)} MB)` 
-                : "Select Video"}
-            </label>
-            {videoFile && (
-              <button 
-                type="button" 
-                onClick={() => clearFile('video')}
-                className="text-red-500 hover:text-red-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label 
-            htmlFor="thumbnail" 
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            <Image className="inline-block w-4 h-4 mr-2 mb-1" />
-            Thumbnail
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="file"
-              id="thumbnail"
-              name="thumbnail"
-              accept="image/*"
-              onChange={(e) => handleFileChange('thumbnail', e)}
-              className="hidden"
-              required
-            />
-            <label 
-              htmlFor="thumbnail" 
-              className="flex-grow px-4 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              {thumbnail 
-                ? `${thumbnail.name} (${(thumbnail.size / 1024 / 1024).toFixed(2)} MB)` 
-                : "Select Thumbnail"}
-            </label>
-            {thumbnail && (
-              <button 
-                type="button" 
-                onClick={() => clearFile('thumbnail')}
-                className="text-red-500 hover:text-red-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex space-x-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-grow bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 flex items-center justify-center space-x-2"
-          >
-            <Upload className="w-5 h-5" />
-            <span>{loading ? 'Uploading...' : 'Upload Video'}</span>
-          </button>
-        </div>
-      </form>
     </div>
+  );
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px] p-6">
+        <DialogHeader className="text-center">
+          <DialogTitle className="flex items-center justify-center text-2xl font-bold text-gray-800 dark:text-gray-100">
+            <FileUp className="mr-3 h-8 w-8 text-blue-600" />
+            Upload Your Video
+          </DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
+            Share your content with the world
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="flex items-center text-gray-700 dark:text-gray-300">
+              <FileText className="mr-2 h-4 w-4" />
+              Title
+            </Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter an engaging title for your video"
+              required
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">
+              Description
+            </Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Tell viewers about your video. What can they expect?"
+              required
+              rows={4}
+              className="w-full"
+            />
+          </div>
+
+          <FileSelector 
+            type="video" 
+            icon={Video} 
+            file={videoFile} 
+            label="Video File"
+            inputRef={videoInputRef}
+          />
+
+          <FileSelector 
+            type="thumbnail" 
+            icon={ImageIcon} 
+            file={thumbnail} 
+            label="Thumbnail"
+            inputRef={thumbnailInputRef}
+          />
+
+          {loading && (
+            <div className="space-y-2">
+              <Label className="text-gray-700 dark:text-gray-300">
+                Upload Progress
+              </Label>
+              <Progress value={uploadProgress} className="w-full" />
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                {`${Math.round(uploadProgress)}% Uploaded`}
+              </p>
+            </div>
+          )}
+
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 transition-colors"
+            disabled={loading}
+          >
+            <UploadCloud className="mr-2 h-5 w-5" />
+            {loading ? 'Uploading...' : 'Upload Video'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

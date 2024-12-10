@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Tasks from "./pages/editorPages/Task";
 import EditorVideoList from "./components/EditorVideoList";
+import CreatorVideoList from "./components/CreatorVideoList";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <ProtectedRoute role="creator">
             <CreatorDashboard />
           </ProtectedRoute>}>
+          <Route path="" element={<CreatorVideoList />} />
         </Route>
 
       </Routes>
