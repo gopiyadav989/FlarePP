@@ -40,7 +40,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useSelector } from "react-redux";
 import EditorAssignmentModal from "./creatorComponents/EditorAssignmentModal";
-import {uploadVideoToYouTube} from "./creatorComponents/youtubeService"
+import { uploadVideoToYouTube } from "./creatorComponents/youtubeService";
 
 const STATUS_CONFIG = {
   uploaded: {
@@ -83,6 +83,8 @@ const CreatorVideoList = () => {
   const [showEditorAssignmentModal, setShowEditorAssignmentModal] =
     useState(false);
   const [selectedVideoForEditor, setSelectedVideoForEditor] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const { googleToken } = useSelector((state) => state.user);
 
@@ -118,21 +120,28 @@ const CreatorVideoList = () => {
   }, []);
 
   const handleVideoAction = async (action, videoId) => {
+
+
+
     if (action === "approve" && googleToken) {
       try {
+        setIsUploading(true);
+        setUploadProgress(0);
         // Call the YouTube upload function directly
-        const uploadResult = await uploadVideoToYouTube(videoId, googleToken);
+        const uploadResult = await uploadVideoToYouTube(videoId, googleToken, (progress) => {
+          setUploadProgress(progress);
+        });
 
         // Update the video state with the YouTube upload status
         setVideos((prevVideos) =>
           prevVideos.map((video) =>
             video._id === videoId
               ? {
-                  ...video,
-                  youtubeUploadStatus: "uploaded",
-                  youtubeVideoId: uploadResult.videoId,
-                  youtubeLink: uploadResult.link,
-                }
+                ...video,
+                youtubeUploadStatus: "uploaded",
+                youtubeVideoId: uploadResult.videoId,
+                youtubeLink: uploadResult.link,
+              }
               : video
           )
         );
@@ -150,6 +159,10 @@ const CreatorVideoList = () => {
           description: error.message || "Failed to upload video to YouTube",
           variant: "destructive",
         });
+      }
+      finally {
+        setIsUploading(false);
+        setUploadProgress(0);
       }
     } else if (action === "reject") {
       // Handle the reject or review case (if any logic is needed here)
@@ -231,13 +244,20 @@ const CreatorVideoList = () => {
             >
               <ThumbsDown className="mr-2 h-4 w-4" /> Reject and Request Re-edit
             </Button>
-            <Button
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-              variant="success"
-              onClick={() => handleVideoAction("approve", video._id)}
-            >
-              <ThumbsUp className="mr-2 h-4 w-4" /> Approve Video
-            </Button>
+            {isUploading ? (
+              <div className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>Uploading {uploadProgress}%</span>
+              </div>
+            ) : (
+              <Button
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                variant="success"
+                onClick={() => handleVideoAction("approve", video._id)}
+              >
+                <ThumbsUp className="mr-2 h-4 w-4" /> Approve Video
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -325,6 +345,24 @@ const CreatorVideoList = () => {
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {video.description || "No description provided"}
                 </p>
+
+                {/* YouTube Upload Progress */}
+                {video.youtubeUploadStatus === "uploading" && (
+                  <div className="w-full mt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">
+                        Uploading to YouTube
+                      </span>
+                      <span className="text-sm font-medium">
+                        {video.uploadProgress || 0}%
+                      </span>
+                    </div>
+                    <Progress
+                      value={video.uploadProgress || 0}
+                      className="w-full"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 

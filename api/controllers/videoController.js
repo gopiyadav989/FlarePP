@@ -172,6 +172,8 @@ export const uploadVideoToYouTube = async (req, res) => {
     oauth2Client.setCredentials({ access_token: googleToken });
 
     // Upload video to YouTube
+    console.log(googleToken);
+    
 
     const response = await youtube.videos.insert({
       part: "snippet,status",

@@ -70,7 +70,7 @@ const EditorVideoList = () => {
           <DialogTitle>{video.title}</DialogTitle>
         </DialogHeader>
         <video controls className="w-full">
-          <source src={video.creatorUploadedVideo} type="video/mp4" />
+        <source src={video.editorUploadedVideo || video.creatorUploadedVideo} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </DialogContent>
@@ -133,15 +133,15 @@ const EditorVideoList = () => {
               </Button>
 
               {/* Upload Edited Video */}
-              <input
+              {/* <input
                 type="file"
                 accept="video/*"
-                id={`upload-${video._id}`}
+                id={upload-${video._id}}
                 className="hidden"
                 onChange={(e) => handleVideoUpload(video._id)}
               />
-              <label htmlFor={`upload-${video._id}`} className="w-full">
-                <UploadEditedVideoDialog
+              <label htmlFor={upload-${video._id}} className="w-full"> */}
+                {!video.editorUploadedVideo && <UploadEditedVideoDialog
                   videoId={video._id}
                   onVideoUpload={(updatedVideo) => {
                     // Update the video in the list
@@ -151,8 +151,8 @@ const EditorVideoList = () => {
                       )
                     );
                   }}
-                />
-              </label>
+                />}
+              {/* </label> */}
 
               {/* Upload Progress */}
               {uploadProgress[video._id] && (
