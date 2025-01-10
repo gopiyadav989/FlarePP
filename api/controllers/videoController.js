@@ -160,10 +160,11 @@ export const uploadVideoToYouTube = async (req, res) => {
 
     const video = await Video.findById(videoId);
 
-
+    console.log(video.editorUploadedVideo);
+    
     const videoStream = await axios({
       method: "GET",
-      url: video.creatorUploadedVideo,
+      url: video.editorUploadedVideo,
       responseType: "stream",
     });
 
@@ -222,7 +223,7 @@ export async function searchVideos(req, res) {
 
     const videos = await Video.find({
       creator: req.user.id,
-      title: { $regex: query, $options: "i" }, // Case-insensitive search using regex
+      title: { $regex: query }, // Case-insensitive search using regex
     })
       .select("title thumbnail status createdAt") // Selecting relevant fields
       .populate("creator", "name username");
