@@ -3,8 +3,10 @@ import jwt from "jsonwebtoken";
 export async function auth(req,res,next) {
     
     try{
+        
 
         const token = await req.cookies.accessToken;
+        console.log(token);
 
         if (!token) {
             return res.status(401).json({ message: "token not found" });
@@ -12,6 +14,7 @@ export async function auth(req,res,next) {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         
         req.user = decodedToken;
+        console.log("mk");
         
         
         next();

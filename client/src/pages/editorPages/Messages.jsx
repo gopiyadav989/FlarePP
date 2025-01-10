@@ -1,115 +1,209 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Search, UserCircle, SendHorizontal } from 'lucide-react';
+import { Search, UserCircle, SendHorizontal, Loader2 } from 'lucide-react';
 
 const Messages = () => {
+  // Initialize state with empty arrays to prevent mapping errors
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const messagesEndRef = useRef(null);
+  const pollInterval = useRef(null);
 
-  // Hardcoded Users
-  const hardcodedUsers = [
-    { _id: '1', name: 'Creator One', username: 'creator1', avatar: '/path/to/avatar1.jpg' },
-    { _id: '2', name: 'Editor One', username: 'editor1', avatar: '/path/to/avatar2.jpg' },
-    { _id: '3', name: 'Creator Two', username: 'creator2', avatar: '/path/to/avatar3.jpg' }
-  ];
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  // Hardcoded Conversations
-  const hardcodedConversations = [
-    {
-      _id: '1',
-      name: 'Creator One',
-      avatar: '/path/to/avatar1.jpg',
-      lastMessage: 'Hey, how are you?',
-      unreadCount: 2
-    },
-    {
-      _id: '2',
-      name: 'Editor One',
-      avatar: '/path/to/avatar2.jpg',
-      lastMessage: 'Please review the video.',
-      unreadCount: 0
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const startPolling = (partnerId) => {
+    if (!partnerId) return; // Prevent polling without a partner
+    stopPolling();
+    pollInterval.current = setInterval(() => {
+      fetchMessages(partnerId);
+    }, 3000);
+  };
+
+  const stopPolling = () => {
+    if (pollInterval.current) {
+      clearInterval(pollInterval.current);
+      pollInterval.current = null;
     }
-  ];
+  };
 
-  // Hardcoded Messages
-  const hardcodedMessages = [
-    { sender: { _id: '1' }, content: 'Hello! How is the video editing going?' },
-    { sender: { _id: '2' }, content: 'It’s going well, thanks for asking.' }
-  ];
+  useEffect(() => {
+    return () => stopPolling();
+  }, []);
 
-  // Search Users
   const handleSearch = async () => {
-    setSearchResults(
-      hardcodedUsers.filter(user =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-    // try {
-    //   const response = await axios.get(`/api/messages/search-users?query=${searchQuery}`);
-    //   setSearchResults(response.data.users);
-    // } catch (error) {
-    //   console.error('Search failed', error);
-    // }
+    if (!searchQuery.trim()) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`/api/messages/search-users?query=${searchQuery}`);
+      // Ensure we have an array, even if empty
+      setSearchResults(Array.isArray(response.data.users) ? response.data.users : []);
+    } catch (err) {
+      console.error('Search error:', err);
+      setError('Failed to search users. Please try again.');
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+
+    
   };
 
-  // Fetch Conversations
   const fetchConversations = async () => {
-    setConversations(hardcodedConversations);
-    // try {
-    //   const response = await axios.get('/api/messages/conversations');
-    //   setConversations(response.data.conversations);
-    // } catch (error) {
-    //   console.error('Fetch conversations failed', error);
-    // }
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:3000/api/messages/conversations');
+      // Ensure we have an array, even if empty
+      setConversations(Array.isArray(response.data.conversations) ? response.data.conversations : []);
+    } catch (err) {
+      console.error('Fetch conversations error:', err);
+      setError('Failed to load conversations. Please refresh.');
+      setConversations([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Select Conversation Partner
+  const fetchMessages = async (partnerId) => {
+    if (!partnerId) return;
+    
+    try {
+      const response = await axios.get(`/api/messages/conversation/${partnerId}`);
+      // Ensure we have an array, even if empty
+      setMessages(Array.isArray(response.data.messages) ? response.data.messages : []);
+      
+      // Only attempt to mark as read if we have a valid response
+      if (response.data.success) {
+        await axios.post('/api/messages/mark-read', { sender: partnerId });
+      }
+    } catch (err) {
+      console.error('Fetch messages error:', err);
+      setMessages([]); // Reset to empty array on error
+    }
+  };
+
   const selectPartner = async (partner) => {
+    if (!partner?._id) return;
+    
     setSelectedPartner(partner);
-    setMessages(hardcodedMessages);
-    // setSelectedPartner(partner);
-    // try {
-    //   const response = await axios.get(`/api/messages/conversation/${partner._id}`);
-    //   setMessages(response.data.messages);
-    // } catch (error) {
-    //   console.error('Fetch messages failed', error);
-    // }
+    setSearchResults([]);
+    setSearchQuery('');
+    await fetchMessages(partner._id);
+    startPolling(partner._id);
   };
 
-  // Send Message
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedPartner) return;
+    if (!newMessage.trim() || !selectedPartner?._id) return;
 
     const tempMessage = {
-      sender: { _id: 'me' }, // Assume 'me' for current user
+      _id: Date.now().toString(), // Ensure string ID
+      sender: { _id: 'currentUser' },
       content: newMessage,
+      createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, tempMessage]);
+    setMessages(prev => [...(Array.isArray(prev) ? prev : []), tempMessage]);
     setNewMessage('');
-    // if (!newMessage.trim() || !selectedPartner) return;
 
-    // try {
-    //   await axios.post('/api/messages/send', {
-    //     recipientId: selectedPartner._id,
-    //     content: newMessage
-    //   });
-    //   setNewMessage('');
-    //   // Refresh messages
-    //   const response = await axios.get(`/api/messages/conversation/${selectedPartner._id}`);
-    //   setMessages(response.data.messages);
-    // } catch (error) {
-    //   console.error('Send message failed', error);
-    // }
+    try {
+      await axios.post('/api/messages/send', {
+        recipientId: selectedPartner._id,
+        content: newMessage
+      });
+      await fetchMessages(selectedPartner._id);
+    } catch (err) {
+      console.error('Send message error:', err);
+      setError('Failed to send message. Please try again.');
+      setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
+      setNewMessage(tempMessage.content);
+    }
   };
 
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  // Render loading state
+  if (loading && !conversations.length) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-zinc-950">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  // Safe render for conversations
+  const renderConversations = () => {
+    if (!Array.isArray(conversations)) return null;
+    
+    return conversations.map(conv => (
+      <div
+        key={conv._id}
+        onClick={() => selectPartner(conv)}
+        className={`flex items-center p-2 rounded-lg cursor-pointer ${
+          selectedPartner?._id === conv._id ? 'bg-zinc-800' : 'hover:bg-zinc-900'
+        }`}
+      >
+        {conv.avatar ? (
+          <img src={conv.avatar} alt="" className="w-10 h-10 rounded-full" />
+        ) : (
+          <UserCircle className="w-10 h-10 text-zinc-400" />
+        )}
+        <div className="ml-3 flex-1">
+          <div className="flex justify-between items-center">
+            <p className="text-white">{conv.name}</p>
+            {conv.unreadCount > 0 && (
+              <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1">
+                {conv.unreadCount}
+              </span>
+            )}
+          </div>
+          <p className="text-zinc-400 text-sm truncate">{conv.lastMessage}</p>
+        </div>
+      </div>
+    ));
+  };
+
+  // Safe render for messages
+  const renderMessages = () => {
+    if (!Array.isArray(messages)) return null;
+    
+    return messages.map((message) => (
+      <div
+        key={message._id}
+        className={`flex mb-4 ${
+          message.sender._id === 'currentUser' ? 'justify-end' : 'justify-start'
+        }`}
+      >
+        <div
+          className={`max-w-[70%] p-3 rounded-lg ${
+            message.sender._id === 'currentUser'
+              ? 'bg-blue-500 text-white'
+              : 'bg-zinc-800 text-white'
+          }`}
+        >
+          <p>{message.content}</p>
+          <p className="text-xs opacity-70 mt-1">
+            {new Date(message.createdAt).toLocaleTimeString()}
+          </p>
+        </div>
+      </div>
+    ));
+  };
 
   return (
     <div className="flex h-full">

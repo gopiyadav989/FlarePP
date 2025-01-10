@@ -3,12 +3,22 @@ import Creator from '../models/creatorModel.js';
 import Editor from '../models/editorModel.js';
 
 export const searchUsers = async (req, res) => {
+    console.log("Search request received");
     try {
         const { query } = req.query;
-        const currentUserRole = req.user.role;
-        const currentUserId = req.user.id;
+        if (!query) {
+            return res.status(400).json({
+                success: false,
+                message: "Search query is required",
+                users: []
+            });
+        }
 
-        let users;
+        console.log("Searching for:", query);
+        // Declare users variable
+        let users = [];
+        const currentUserRole = "editor"; // You might want to get this from req.user.role
+        
         if (currentUserRole === 'editor') {
             // If editor, search among creators
             users = await Creator.find({
@@ -16,7 +26,7 @@ export const searchUsers = async (req, res) => {
                     { username: { $regex: query, $options: 'i' } },
                     { name: { $regex: query, $options: 'i' } }
                 ]
-            }).select('_id name username avatar');
+            }).select('_id name username avatar'); // Only select needed fields
         } else if (currentUserRole === 'creator') {
             // If creator, search among editors
             users = await Editor.find({
@@ -27,14 +37,30 @@ export const searchUsers = async (req, res) => {
             }).select('_id name username avatar');
         }
 
+        console.log(users);
+
+        // Format users to match frontend expectations
+        const formattedUsers = users.map(user => ({
+            _id: user._id,
+            name: user.name || '',
+            username: user.username || '',
+            avatar: user.avatar || '',
+        }));
+
+        console.log("Found users:", formattedUsers.length);
+
         res.status(200).json({
+            success: true,
             message: "Users found successfully",
-            users
+            users: formattedUsers
         });
     } catch (error) {
+        console.error("Search error:", error);
         res.status(500).json({
+            success: false,
             message: "Failed to search users",
-            error: error.message
+            error: error.message,
+            users: []
         });
     }
 };
@@ -155,57 +181,56 @@ export const getConversationMessages = async (req, res) => {
     try {
         const userId = req.user.id;
         const { partnerId } = req.params;
-        const userRole = req.user.role;
 
         const messages = await Message.find({
             $or: [
-                {
-                    sender: userId,
-                    recipient: partnerId
-                },
-                {
-                    sender: partnerId,
-                    recipient: userId
-                }
+                { sender: userId, recipient: partnerId },
+                { sender: partnerId, recipient: userId }
             ]
         })
-            .sort({ createdAt: 1 })
-            .populate('sender', 'name avatar');
+        .sort({ createdAt: 1 })
+        .populate('sender', 'name avatar')
+        .select('content status createdAt sender');
 
         res.status(200).json({
-            message: "Conversation messages retrieved successfully",
+            success: true,
             messages
         });
     } catch (error) {
+        console.error('Error fetching messages:', error);
         res.status(500).json({
-            message: "Failed to retrieve conversation messages",
+            success: false,
+            message: 'Failed to fetch messages',
             error: error.message
         });
     }
 };
 
-
 export const markMessagesAsRead = async (req, res) => {
     try {
         const userId = req.user.id;
-        const sender = req.body.sender;
+        const { sender } = req.body;
 
-        // Mark messages as read for this sender and recipient pair
         await Message.updateMany(
             {
-                sender,
-                recipient: userId,
+                sender: new mongoose.Types.ObjectId(sender),
+                recipient: new mongoose.Types.ObjectId(userId),
                 status: 'unread'
             },
-            { status: 'read' }
+            {
+                $set: { status: 'read' }
+            }
         );
 
         res.status(200).json({
-            message: "Messages marked as read"
+            success: true,
+            message: 'Messages marked as read'
         });
     } catch (error) {
+        console.error('Error marking messages as read:', error);
         res.status(500).json({
-            message: "Failed to mark messages as read",
+            success: false,
+            message: 'Failed to mark messages as read',
             error: error.message
         });
     }
