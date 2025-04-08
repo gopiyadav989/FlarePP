@@ -3,19 +3,22 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
-import EditorDashboard from "./pages/EditorDashboard";
-import CreatorDashboard from "./pages/CreatorDashboard";
+import EditorDashboard from "./pages/editorPages/EditorDashboard";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectAuthenticated from "./components/RedirectAuthenticated";
-import CreatorVideoList from "./components/CreatorVideoList";
+
 import SearchPage from "./components/creatorComponents/SearchPage";
 // Pages for Editor Dashboard
-import EditorVideoList from "./components/EditorVideoList";
+
 import InProgress from "./pages/editorPages/InProgress";
 import Revisions from "./pages/editorPages/Revisions";
 import Completed from "./pages/editorPages/Completed";
 import Messages from "./pages/editorPages/Messages";
 import ProfilePage from "./components/Profile";
+import CreatorVideoList from './components/creatorComponents/CreatorVideoList';
+import EditorVideoList from './components/editorComponents/EditorVideoList';
+import CreatorDashboard from './pages/creatorPages/CreatorDashboard';
 
 export default function App() {
   return (

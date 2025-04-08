@@ -39,8 +39,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { useSelector } from "react-redux";
-import EditorAssignmentModal from "./creatorComponents/EditorAssignmentModal";
-import { uploadVideoToYouTube } from "./creatorComponents/youtubeService";
+import EditorAssignmentModal from "./EditorAssignmentModal"
+import { uploadVideoToYouTube } from "./youtubeService";
 
 const STATUS_CONFIG = {
   uploaded: {

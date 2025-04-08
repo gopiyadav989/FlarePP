@@ -78,7 +78,6 @@ export async function getVideos(req, res) {
 
 // Assign an editor to a video
 export const getAllEditors = async (req, res) => {
-  console.log("hi from edit");
   
   try {
     // Fetch all editors

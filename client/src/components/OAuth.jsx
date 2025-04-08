@@ -7,7 +7,6 @@ const CLIENT_ID = "173852556484-3c302oeh2nqs108mqhn936f8sn5m6fs7.apps.googleuser
 
 const SCOPES = "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.upload ";
 
-
 const OAuth = ({ role }) => {
 
   const dispatch = useDispatch();
@@ -50,9 +49,9 @@ const OAuth = ({ role }) => {
     initializeGoogleClient();
   }, [role]);
 
-  useEffect(() => {
-    console.log(user);
-  },[user])
+  // useEffect(() => {
+  //   console.log(user);
+  // },[user])
 
 
   const fetchUserDetails = async (token) => {
@@ -73,7 +72,7 @@ const OAuth = ({ role }) => {
   const callBackend = async (role, userDetails, accessToken) => {
     try {
       console.log("role", role)
-      const response = await fetch("http://localhost:3000/api/auth/loginwihtgoogle", {
+      const response = await fetch("http://localhost:3000/api/auth/loginwithgoogle", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -93,15 +92,13 @@ const OAuth = ({ role }) => {
         role: data.user.role,
         googleToken: accessToken
       }))
-      console.log("Backend response:", data);
+      
       navigate("/");
       // Handle the response accordingly, maybe update user state or UI
     } catch (error) {
       console.error("Error calling backend:", error);
     }
   };
-
-
 
   const handleGoogleClick = () => {
     if (tokenClient) {

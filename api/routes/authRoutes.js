@@ -9,6 +9,6 @@ router.get("/logout", (req,res)=>{
     console.log("adf");
 }, logout);
 
-router.post("/loginwihtgoogle",loginWithGoogle);
+router.post("/loginwithgoogle",loginWithGoogle);
 
 export default router;

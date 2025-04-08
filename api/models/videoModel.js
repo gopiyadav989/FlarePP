@@ -15,6 +15,7 @@ const videoSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Creator",
         required: true,
+            
     },
     editor: {
         type: mongoose.Schema.Types.ObjectId,

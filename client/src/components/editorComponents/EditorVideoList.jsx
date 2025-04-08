@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-import UploadEditedVideoDialog from './editorComponents/UploadEditedVideoDialog';
+import UploadEditedVideoDialog from './UploadEditedVideoDialog';
 
 const EditorVideoList = () => {
   const [assignedVideos, setAssignedVideos] = useState([]);
@@ -94,7 +94,8 @@ const EditorVideoList = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+      
       {assignedVideos.map((video) => (
         <Card key={video._id} className="hover:shadow-lg transition-shadow">
           <CardHeader>

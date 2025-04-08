@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "../components/editorComponents/Navbar";
-import Dock from "../components/editorComponents/Dock";
+import Navbar from "../../components/editorComponents/Navbar";
+import Dock from "../../components/editorComponents/Dock";
 
 const EditorDashboard = () => {
 

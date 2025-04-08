@@ -6,7 +6,8 @@ import {
   FolderOpen,
   Clock
 } from 'lucide-react';
-import FormPage from '../FormPage';  // Ensure correct path to FormPage
+import FormPage from "./FormPage";
+
 
 const Dock = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -57,7 +58,7 @@ const Dock = () => {
         </div>
       </div>
 
-      <FormPage 
+      <FormPage
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)} 
       />
