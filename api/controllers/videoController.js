@@ -113,13 +113,11 @@ export const getAllEditors = async (req, res) => {
 export const assignEditor = async (req, res) => {
   const { videoId, editorId } = req.body;
   try {
-    // Check if editor exists
     const editor = await Editor.findById(editorId);
     if (!editor) {
       return res.status(404).json({ success: false, message: "Editor not found" });
     }
 
-    // Update the video
     const video = await Video.findByIdAndUpdate(
       videoId,
       { editor: editorId, status: "assigned" },
@@ -130,23 +128,31 @@ export const assignEditor = async (req, res) => {
       return res.status(404).json({ success: false, message: "Video not found" });
     }
 
-    // Update the editor's assigned videos
     const updatedEditor = await Editor.findByIdAndUpdate(
       editorId,
-      { $push: { videos: videoId } },
+      { $addToSet: { videos: videoId } }, // prevents duplicate video references
       { new: true }
     );
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Editor assigned successfully", 
-      video, 
-      editor: updatedEditor 
+    // Add the editor to preferredEditors of creator, only if not already there
+    await Creator.findByIdAndUpdate(
+      video.creator,
+      { $addToSet: { preferredEditors: editorId } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Editor assigned successfully",
+      video,
+      editor: updatedEditor
     });
+
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to assign editor", error: error.message });
   }
 };
+
 
 export const uploadVideoToYouTube = async (req, res) => {
   const { googleToken, videoId } = req.body;

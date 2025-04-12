@@ -42,7 +42,7 @@ const creatorSchema = new mongoose.Schema({
     preferredEditors: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "editorModel"
+            ref: "Editor"
         }
     ],
     socialLinks: [

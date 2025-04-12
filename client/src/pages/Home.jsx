@@ -227,23 +227,23 @@ const Home = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8">
-            <Button 
-              size="lg"
-              onClick={() => navigate("/login")}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6 text-lg font-medium shadow-lg shadow-purple-500/20"
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            
-            <Button 
-              size="lg"
-              variant="outline"
-              className="border-white/20 bg-white/5 hover:bg-white/10 text-white rounded-full px-8 py-6 text-lg font-medium backdrop-blur-sm flex items-center"
-            >
-              <PlayCircle className="mr-2 h-5 w-5" />
-              Watch Demo
-            </Button>
+  <Button 
+    size="lg"
+    onClick={() => navigate("/login")}
+    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6 text-lg font-medium shadow-lg shadow-purple-500/20"
+  >
+    Get Started
+    <ArrowRight className="ml-2 h-5 w-5" />
+  </Button>
+  
+  <Button 
+    size="lg"
+    variant="outline"
+    className="border-white/20 bg-white/5 hover:bg-white/10 text-white rounded-full px-8 py-6 text-lg font-medium backdrop-blur-sm flex items-center"
+  >
+    <PlayCircle className="mr-2 h-5 w-5" />
+    Watch Demo
+  </Button>
           </div>
           
           <div className="absolute bottom-8 left-0 right-0 flex justify-center animate-bounce">

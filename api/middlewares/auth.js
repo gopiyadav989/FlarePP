@@ -6,7 +6,7 @@ export async function auth(req,res,next) {
         
 
         const token = await req.cookies.accessToken;
-        console.log(token);
+        console.log("token", token);
 
         if (!token) {
             return res.status(401).json({ message: "token not found" });
