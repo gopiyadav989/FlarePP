@@ -10,7 +10,7 @@ import React, {
 
 const MouseEnterContext = createContext(undefined);
 
-export const ThreeDCard = ({
+export const Card3D = ({
   children,
   className,
   containerClassName

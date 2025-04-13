@@ -85,7 +85,6 @@ export const getConversations = async (req, res) => {
     const user = req.user;
     console.log(`Getting conversations for user: ${user.id}, role: ${user.role}`);
     
-    // Find all conversations where the user is a participant
     const conversations = await Conversation.find({
       'participants.user': user.id
     })
@@ -94,10 +93,8 @@ export const getConversations = async (req, res) => {
     
     console.log(`Found ${conversations.length} conversations`);
     
-    // Format conversations for the frontend
     const formattedConversations = await Promise.all(conversations.map(async (conv) => {
       try {
-        // Find the other participant
         const otherParticipant = conv.participants.find(
           p => p.user.toString() !== user.id
         );
@@ -107,7 +104,6 @@ export const getConversations = async (req, res) => {
           return null;
         }
         
-        // Get the user details
         let partner;
         if (otherParticipant.model === 'Creator') {
           partner = await Creator.findById(otherParticipant.user);
@@ -120,7 +116,6 @@ export const getConversations = async (req, res) => {
           return null;
         }
         
-        // Count unread messages
         const unreadCount = await Message.countDocuments({
           _id: { $in: conv.messages },
           sender: otherParticipant.user,
@@ -143,7 +138,6 @@ export const getConversations = async (req, res) => {
       }
     }));
     
-    // Filter out null values and send the response
     const validConversations = formattedConversations.filter(Boolean);
     console.log(`Returning ${validConversations.length} valid conversations`);
     
@@ -161,13 +155,12 @@ export const getMessages = async (req, res) => {
     
     console.log(`Getting messages between ${user.id} and ${partnerId}`);
 
-    // Find all messages between the current user and partner
     const messages = await Message.find({
       $or: [
         { sender: user.id, receiver: partnerId },
         { sender: partnerId, receiver: user.id }
       ]
-    }).sort({ createdAt: 1 }); // Sort by timestamp ascending
+    }).sort({ createdAt: 1 }); 
     
     console.log(`Found ${messages.length} messages`);
     
@@ -200,7 +193,6 @@ export const getMessages = async (req, res) => {
     
     console.log(`Returning ${formattedMessages.length} formatted messages`);
 
-    // Mark messages as read
     await Message.updateMany(
       {
         sender: partnerId,
@@ -224,7 +216,6 @@ export const getMessages = async (req, res) => {
   }
 };
 
-// Send a message
 export const sendMessage = async (req, res) => {
   try {
     const user = req.user;
@@ -276,7 +267,7 @@ export const sendMessage = async (req, res) => {
         _id: savedMessage._id.toString(),
         content: savedMessage.content,
         timestamp: savedMessage.createdAt,
-        isCurrentUser: true, // Always true for sent messages
+        isCurrentUser: true,
         sender: user.id
       }
     });
