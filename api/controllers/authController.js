@@ -42,6 +42,10 @@ export const login = async (req, res) => {
 
         const options = {
             httpOnly: true,       // Ensures the cookie works for navigation within the same site
+            secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
+            sameSite: 'lax',      // Controls when cookies are sent with cross-site requests
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            path: '/'             // Available across the entire site
         };
 
 
@@ -91,6 +95,10 @@ export const loginWithGoogle = async (req, res) => {
 
             const options = {
                 httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
+                sameSite: 'lax',      // Controls when cookies are sent with cross-site requests
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                path: '/'             // Available across the entire site
             };
 
             res.cookie("accessToken", token, options).status(200).json({

@@ -17,11 +17,11 @@ const Dock = () => {
 
   const links = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/editor-dashboard", description: "Overview and analytics", badge: null },
-    { title: "In Progress", icon: <Clock className="h-5 w-5" />, href: "/editor-dashboard/in-progress", description: "Currently editing", badge: 2 },
-    { title: "Revisions", icon: <AlertCircle className="h-5 w-5" />, href: "/editor-dashboard/revisions", description: "Need modifications", badge: 1 },
-    { title: "Completed", icon: <CheckCircle className="h-5 w-5" />, href: "/editor-dashboard/completed", description: "Videos Live on Youtube", badge: null },
+    // { title: "In Progress", icon: <Clock className="h-5 w-5" />, href: "/editor-dashboard/in-progress", description: "Currently editing", badge: 2 },
+    // { title: "Revisions", icon: <AlertCircle className="h-5 w-5" />, href: "/editor-dashboard/revisions", description: "Need modifications", badge: 1 },
+    // { title: "Completed", icon: <CheckCircle className="h-5 w-5" />, href: "/editor-dashboard/completed", description: "Videos Live on Youtube", badge: null },
     { title: "Messages", icon: <MessageCircle className="h-5 w-5" />, href: "/editor-dashboard/messages", description: "Creator communications", badge: 5 },
-    { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, href: "/chat", description: "Chat with others", badge: null }
+    // { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, href: "/chat", description: "Chat with others", badge: null }
   ];
 
   const DockItem = ({ title, icon, href, description, badge }) => {

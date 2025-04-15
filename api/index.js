@@ -11,6 +11,7 @@ import editorRoutes from "./routes/editorRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
 import conversationRoutes from "./routes/conversationRoutes.js"
+import notificationRoutes from "./routes/notificationRoutes.js"
 import { setupWebSocket } from "./websockets/socket.js";
 
 dotenv.config();
@@ -23,10 +24,15 @@ cloudinaryConnect();
 const app = express();
 
 app.use(express.json());
+
+// Properly configured CORS for credentials
 app.use(cors({
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
   credentials: true,
-  origin: "http://localhost:5173",
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
+
 app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: "/tmp"
@@ -39,6 +45,7 @@ app.use("/api/editor", editorRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/conversation", conversationRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.get("/", (req, res) => {
   return res.json({
     success: true,

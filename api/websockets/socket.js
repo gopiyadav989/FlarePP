@@ -8,21 +8,32 @@ import {
   handleDisconnect
 } from './handlers/messageHandler.js';
 
+import {
+  handleVideoAssigned,
+  handleVideoEdited,
+  handleRevisionRequested,
+  handleVideoPublished
+} from './handlers/notificationHandler.js';
+
 // Store authenticated clients with their user IDs
 const clients = new Map();
 
 export const setupWebSocket = (server) => {
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({ 
+    server,
+    path: '/ws'
+  });
 
   // ✅ Log when WebSocket server is up
   console.log('✅ WebSocket server is up and listening for connections');
 
   wss.on('connection', (ws) => {
-    
+    console.log('New WebSocket connection established');
     
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message.toString());
+        console.log('WebSocket message received:', data.type);
         
         switch (data.type) {
           case 'auth':
@@ -37,7 +48,19 @@ export const setupWebSocket = (server) => {
           case 'get_user_status':
             handleUserStatus(ws, data, clients);
             break;
-          
+          // Notification handlers
+          case 'video_assigned':
+            await handleVideoAssigned(data, clients);
+            break;
+          case 'video_edited':
+            await handleVideoEdited(data, clients);
+            break;
+          case 'revision_requested':
+            await handleRevisionRequested(data, clients);
+            break;
+          case 'video_published':
+            await handleVideoPublished(data, clients);
+            break;
         }
       } catch (error) {
         console.error('❌ Error processing WebSocket message:', error);

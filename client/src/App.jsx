@@ -13,9 +13,10 @@ import InProgress from "./pages/editorPages/InProgress";
 import Revisions from "./pages/editorPages/Revisions";
 import Completed from "./pages/editorPages/Completed";
 import Messages from "./pages/editorPages/Messages";
-import ProfilePage from "./components/Profile";
+import ProfilePage from './components/Profile';
 import CreatorVideoList from './components/creatorComponents/CreatorVideoList';
 import EditorVideoList from './components/editorComponents/EditorVideoList';
+import VideoDetailPage from './pages/creatorPages/VideoDetailPage';
 
 export default function App() {
   return (
@@ -66,6 +67,15 @@ export default function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="chat" element={<ChatPage />} />
       </Route>
+
+      <Route
+        path="videos/:videoId"
+        element={
+          <ProtectedRoute role="creator">
+            <VideoDetailPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="chat"
