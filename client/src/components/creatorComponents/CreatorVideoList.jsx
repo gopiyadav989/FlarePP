@@ -1,135 +1,95 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Play,
-  Upload,
-  Edit,
-  VideoIcon,
-  Clock,
-  CheckCircle,
-  XCircle,
-  MoreVertical,
-  ThumbsUp,
-  ThumbsDown,
-  Loader2,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { useSelector } from "react-redux";
-import EditorAssignmentModal from "./EditorAssignmentModal"
+import EditorAssignmentModal from "./EditorAssignmentModal";
 import { uploadVideoToYouTube } from "./youtubeService";
+import { getCreatorVideos } from "../../api/videoService";
 
-const STATUS_CONFIG = {
-  uploaded: {
-    icon: Clock,
-    color: "text-yellow-500",
-    badgeVariant: "secondary",
-  },
-  assigned: {
-    icon: Edit,
-    color: "text-blue-500",
-    badgeVariant: "outline",
-  },
-  edited: {
-    icon: VideoIcon,
-    color: "text-green-500",
-    badgeVariant: "default",
-  },
-  approved: {
-    icon: CheckCircle,
-    color: "text-green-700",
-    badgeVariant: "success",
-  },
-  published: {
-    icon: CheckCircle,
-    color: "text-green-700",
-    badgeVariant: "success",
-  },
-  default: {
-    icon: XCircle,
-    color: "text-red-500",
-    badgeVariant: "destructive",
-  },
-};
+// Import new component modules
+import VideoCard from "./videoComponents/VideoCard";
+import VideoListHeader from "./videoComponents/VideoListHeader";
+import VideoListSkeleton from "./videoComponents/VideoListSkeleton";
+import ErrorDisplay from "./videoComponents/ErrorDisplay";
+import EmptyVideoState from "./videoComponents/EmptyVideoState";
+import EditorVideoReviewDialog from "./videoComponents/EditorVideoReviewDialog";
 
+/**
+ * Main CreatorVideoList Component
+ */
 const CreatorVideoList = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reviewingVideo, setReviewingVideo] = useState(null);
-  const [showEditorAssignmentModal, setShowEditorAssignmentModal] =
-    useState(false);
+  const [showEditorAssignmentModal, setShowEditorAssignmentModal] = useState(false);
   const [selectedVideoForEditor, setSelectedVideoForEditor] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [filterOption, setFilterOption] = useState("all");
+  const [sortOption, setSortOption] = useState("newest");
 
   const { googleToken } = useSelector((state) => state.user);
 
+  // Fetch videos from API
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const data = await getCreatorVideos();
+      setVideos(data.videos || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching videos:", err);
+      setError(err.message || "Failed to load videos");
+      toast({
+        title: "Error",
+        description: "Failed to load videos. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/api/videos/creator-get-videos",
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch videos");
-        }
-
-        const data = await response.json();
-        setVideos(data.videos);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching videos:", err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
     fetchVideos();
   }, []);
 
+  // Handle video actions (approve, reject)
   const handleVideoAction = async (action, videoId) => {
-
-
-
     if (action === "approve" && googleToken) {
       try {
         setIsUploading(true);
         setUploadProgress(0);
-        // Call the YouTube upload function directly
+        
+        // Update local state to show uploading
+        setVideos((prevVideos) =>
+          prevVideos.map((video) =>
+            video._id === videoId
+              ? {
+                ...video,
+                youtubeUploadStatus: "uploading",
+                uploadProgress: 0,
+              }
+              : video
+          )
+        );
+
+        // Call the YouTube upload function
         const uploadResult = await uploadVideoToYouTube(videoId, googleToken, (progress) => {
           setUploadProgress(progress);
+          
+          // Update progress in the videos array
+          setVideos((prevVideos) =>
+            prevVideos.map((video) =>
+              video._id === videoId
+                ? {
+                  ...video,
+                  uploadProgress: progress,
+                }
+                : video
+            )
+          );
         });
 
         // Update the video state with the YouTube upload status
@@ -138,6 +98,7 @@ const CreatorVideoList = () => {
             video._id === videoId
               ? {
                 ...video,
+                status: "published",
                 youtubeUploadStatus: "uploaded",
                 youtubeVideoId: uploadResult.videoId,
                 youtubeLink: uploadResult.link,
@@ -151,226 +112,130 @@ const CreatorVideoList = () => {
           description: "Video uploaded to YouTube successfully",
           variant: "default",
         });
+        
+        // Close review dialog
+        setReviewingVideo(null);
       } catch (error) {
         console.error("YouTube Upload Failed:", error);
 
+        // Update video state to show error
+        setVideos((prevVideos) =>
+          prevVideos.map((video) =>
+            video._id === videoId
+              ? {
+                ...video,
+                youtubeUploadStatus: "error",
+              }
+              : video
+          )
+        );
+
         toast({
-          title: "Error",
+          title: "Upload Failed",
           description: error.message || "Failed to upload video to YouTube",
           variant: "destructive",
         });
-      }
-      finally {
+      } finally {
         setIsUploading(false);
         setUploadProgress(0);
       }
     } else if (action === "reject") {
-      // Handle the reject or review case (if any logic is needed here)
+      // Handle rejection logic
       toast({
         title: "Video Rejected",
         description: "The video has been sent for re-editing.",
         variant: "default",
       });
+      
+      // Close review dialog
+      setReviewingVideo(null);
     }
   };
 
-  const VideoPreviewDialog = ({ video, videoUrl }) => (
-    <Dialog>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-primary/10 transition-colors"
-              >
-                <Play className="h-6 w-6 text-primary" />
-              </Button>
-            </DialogTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>Preview Video</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <DialogContent className="sm:max-w-4xl w-full max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">{video.title}</DialogTitle>
-        </DialogHeader>
-        <div className="flex justify-center items-center">
-          <video
-            controls
-            className="max-w-full max-h-[70vh] rounded-lg shadow-lg"
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-
-  const EditorVideoReviewDialog = ({ video }) => {
-    if (!video.editorUploadedVideo) return null;
-
-    return (
-      <Dialog
-        open={reviewingVideo === video._id}
-        onOpenChange={() => setReviewingVideo(null)}
-      >
-        <DialogContent className="sm:max-w-4xl w-full max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Review Edited Video</DialogTitle>
-            <DialogDescription>
-              Please review the edited version of "{video.title}"
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex justify-center items-center">
-            <video
-              controls
-              className="max-w-full max-h-[70vh] rounded-lg shadow-lg"
-            >
-              <source src={video.editorUploadedVideo} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-
-          <DialogFooter className="flex justify-between">
-            <Button
-              variant="destructive"
-              onClick={() => handleVideoAction("reject", video._id)}
-            >
-              <ThumbsDown className="mr-2 h-4 w-4" /> Reject and Request Re-edit
-            </Button>
-            {isUploading ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span>Uploading {uploadProgress}%</span>
-              </div>
-            ) : (
-              <Button
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                variant="success"
-                onClick={() => handleVideoAction("approve", video._id)}
-              >
-                <ThumbsUp className="mr-2 h-4 w-4" /> Approve Video
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
+  // Filter and sort videos based on selected options
+  const getFilteredAndSortedVideos = () => {
+    // First filter
+    let filteredVideos = videos;
+    
+    // Filter by status if not "all"
+    if (filterOption !== "all") {
+      filteredVideos = videos.filter((video) => video.status === filterOption);
+    }
+    
+    // Then sort
+    switch (sortOption) {
+      case "newest":
+        return [...filteredVideos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      case "oldest":
+        return [...filteredVideos].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      case "status":
+        const statusOrder = { published: 5, approved: 4, edited: 3, assigned: 2, uploaded: 1 };
+        return [...filteredVideos].sort((a, b) => 
+          (statusOrder[b.status] || 0) - (statusOrder[a.status] || 0)
+        );
+      case "title":
+        return [...filteredVideos].sort((a, b) => a.title.localeCompare(b.title));
+      default:
+        return filteredVideos;
+    }
   };
 
-  const VideoActionsMenu = ({ video }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="hover:bg-accent">
-          <MoreVertical className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {video.editorUploadedVideo && (
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onSelect={() => setReviewingVideo(video._id)}
-          >
-            <VideoIcon className="mr-2 h-4 w-4" /> Review Edited Video
-          </DropdownMenuItem>
-        )}
-        {video.status === "uploaded" && (
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onSelect={() => {
-              setSelectedVideoForEditor(video._id);
-              setShowEditorAssignmentModal(true);
-            }}
-          >
-            <Edit className="mr-2 h-4 w-4" /> Assign Editor
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
-  const StatusComponent = ({ status }) => {
-    const {
-      icon: Icon,
-      color,
-      badgeVariant,
-    } = STATUS_CONFIG[status] || STATUS_CONFIG.default;
-    return (
-      <div className="flex items-center space-x-2">
-        <Icon className={`h-5 w-5 ${color}`} />
-        <Badge variant={badgeVariant} className="capitalize">
-          {status}
-        </Badge>
-      </div>
-    );
+  // Get the video object being reviewed
+  const getReviewVideo = () => {
+    if (!reviewingVideo) return null;
+    return videos.find(video => video._id === reviewingVideo);
   };
 
+  // Main renderer
   return (
     <div className="space-y-6 p-6">
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {videos.map((video) => (
-          <React.Fragment key={video._id}>
-            <Card className="w-full hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
-              <div className="relative">
-                <img
-                  src={video.thumbnail}
-                  alt={video.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <div className="absolute top-3 right-3 flex space-x-2">
-                  <VideoPreviewDialog
-                    video={video}
-                    videoUrl={video.creatorUploadedVideo}
-                  />
-                </div>
-              </div>
+      {/* Header Section */}
+      <VideoListHeader 
+        sortOption={sortOption} 
+        setSortOption={setSortOption} 
+        onRefresh={fetchVideos} 
+      />
 
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold line-clamp-1">
-                      {video.title}
-                    </h3>
-                    <StatusComponent status={video.status} />
-                  </div>
-                  <VideoActionsMenu video={video} />
-                </div>
+      {/* Content Section */}
+      {loading ? (
+        <VideoListSkeleton />
+      ) : error ? (
+        <ErrorDisplay error={error} onRetry={fetchVideos} />
+      ) : getFilteredAndSortedVideos().length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+          {getFilteredAndSortedVideos().map((video) => (
+            <React.Fragment key={video._id}>
+              <VideoCard 
+                video={video} 
+                onReview={(id) => setReviewingVideo(id)}
+                onAssign={(id) => {
+                  setSelectedVideoForEditor(id);
+                  setShowEditorAssignmentModal(true);
+                }}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+      ) : (
+        <EmptyVideoState 
+          filterOption={filterOption} 
+          onReset={() => setFilterOption("all")} 
+        />
+      )}
 
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {video.description || "No description provided"}
-                </p>
+      {/* Review Dialog */}
+      {reviewingVideo && (
+        <EditorVideoReviewDialog 
+          video={getReviewVideo()}
+          isOpen={!!reviewingVideo}
+          onClose={() => setReviewingVideo(null)}
+          handleVideoAction={handleVideoAction}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+        />
+      )}
 
-                {/* YouTube Upload Progress */}
-                {video.youtubeUploadStatus === "uploading" && (
-                  <div className="w-full mt-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-muted-foreground">
-                        Uploading to YouTube
-                      </span>
-                      <span className="text-sm font-medium">
-                        {video.uploadProgress || 0}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={video.uploadProgress || 0}
-                      className="w-full"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <EditorVideoReviewDialog video={video} />
-          </React.Fragment>
-        ))}
-      </div>
-
+      {/* Editor Assignment Modal */}
       {showEditorAssignmentModal && (
         <EditorAssignmentModal
           videoId={selectedVideoForEditor}
@@ -378,6 +243,7 @@ const CreatorVideoList = () => {
           onClose={() => {
             setShowEditorAssignmentModal(false);
             setSelectedVideoForEditor(null);
+            fetchVideos(); // Refresh videos after assignment
           }}
         />
       )}

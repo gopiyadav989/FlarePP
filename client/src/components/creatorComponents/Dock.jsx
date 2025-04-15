@@ -16,14 +16,14 @@ const Dock = () => {
   
   const links = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, path: "/creator-dashboard" },
-    { title: "Tasks", icon: <Video className="h-5 w-5" />, path: "/creator-dashboard/tasks" },
-    { title: "Files", icon: <FolderOpen className="h-5 w-5" />, path: "/creator-dashboard/files" },
+    // { title: "Tasks", icon: <Video className="h-5 w-5" />, path: "/creator-dashboard/tasks" },
+    // { title: "Files", icon: <FolderOpen className="h-5 w-5" />, path: "/creator-dashboard/files" },
     {
       title: "Upload",
       icon: <Upload className="h-5 w-5" />,
       onClick: () => setIsUploadModalOpen(true)
     },
-    { title: "History", icon: <Clock className="h-5 w-5" />, path: "/creator-dashboard/history" },
+    // { title: "History", icon: <Clock className="h-5 w-5" />, path: "/creator-dashboard/history" },
     { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, path: "/chat" },
   ];
   
@@ -56,7 +56,7 @@ const Dock = () => {
   
   return (
     <div className="dock-container">
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 px-7">
         <div className="bg-zinc-900/90 backdrop-blur-sm rounded-full p-2 shadow-lg border border-zinc-800">
           <div className="flex items-center gap-2">
             {links.map((link, index) => (

@@ -1,28 +1,52 @@
 import jwt from "jsonwebtoken";
 
-export async function auth(req,res,next) {
-    
-    try{
-        
-
-        const token = await req.cookies.accessToken;
-        console.log("token", token);
+export async function auth(req, res, next) {
+    try {
+        // Get token from cookies (no need for await on synchronous operation)
+        const token = req.cookies.accessToken;
 
         if (!token) {
-            return res.status(401).json({ message: "token not found" });
+            return res.status(401).json({ 
+                success: false,
+                message: "Access token not found. Please login again." 
+            });
         }
+
+        // Verify JWT token
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         
+        // Check if token has required fields
+        if (!decodedToken.id || !decodedToken.role || !decodedToken.email) {
+            return res.status(401).json({ 
+                success: false,
+                message: "Invalid token format. Please login again." 
+            });
+        }
+
+        // Set user context
         req.user = decodedToken;
-        console.log("mk");
-        
-        
         next();
 
-    }
-    catch(error){
+    } catch (error) {
         console.error("Auth Middleware Error:", error.message);
-        return res.status(401).json({ message: "Authentication failed" });
+        
+        // Handle specific JWT errors
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                success: false,
+                message: "Token has expired. Please login again." 
+            });
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ 
+                success: false,
+                message: "Invalid token. Please login again." 
+            });
+        }
+        
+        return res.status(401).json({ 
+            success: false,
+            message: "Authentication failed. Please login again." 
+        });
     }
 }
 

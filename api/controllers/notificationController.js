@@ -1,6 +1,6 @@
 import Notification from '../models/notificationModel.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
-import { ApiError } from '../utils/ApiError.js';
+import Creator from "../models/creatorModel.js";
+import Editor from "../models/editorModel.js";
 
 // Get notifications for the current user
 export const getNotifications = async (req, res) => {
@@ -40,7 +40,7 @@ export const markNotificationAsRead = async (req, res) => {
                 _id: req.params.id,
                 recipient: req.user._id 
             },
-            { read: true },
+            { isRead: true },
             { new: true }
         );
 
@@ -63,39 +63,11 @@ export const markNotificationAsRead = async (req, res) => {
     }
 };
 
-// Mark all notifications as read
-export const markAllNotificationsAsRead = async (req, res) => {
-    try {
-        await Notification.updateMany(
-            { 
-                recipient: req.user._id,
-                read: false
-            },
-            { read: true }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "All notifications marked as read"
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || "Error marking all notifications as read"
-        });
-    }
-};
-
 // Create a notification
-export const createNotification = async (recipientId, type, message, videoId = null) => {
+export const createNotification = async (notificationData) => {
     try {
-        const notification = await Notification.create({
-            recipient: recipientId,
-            type,
-            message,
-            video: videoId
-        });
-
+        const notification = new Notification(notificationData);
+        await notification.save();
         return notification;
     } catch (error) {
         console.error("Error creating notification:", error);
@@ -115,5 +87,127 @@ export const cleanupOldNotifications = async () => {
     } catch (error) {
         console.error("Error cleaning up notifications:", error);
         throw error;
+    }
+};
+
+/**
+ * Get notifications for the authenticated user
+ */
+export const getUserNotifications = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        
+        // Determine the model type based on user role
+        const recipientModel = userRole === "creator" ? "Creator" : "Editor";
+        
+        // Get user's notifications
+        const notifications = await Notification.find({
+            recipient: userId,
+            recipientModel: recipientModel,
+        })
+            .sort({ createdAt: -1 })
+            .limit(30)
+            .populate("relatedVideo", "title thumbnail");
+        
+        // Get unread count
+        const unreadCount = await Notification.countDocuments({
+            recipient: userId,
+            recipientModel: recipientModel,
+            isRead: false,
+        });
+        
+        res.status(200).json({
+            success: true,
+            notifications,
+            unreadCount,
+        });
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch notifications",
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Mark notifications as read
+ */
+export const markNotificationsAsRead = async (req, res) => {
+    try {
+        const { notificationIds } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        
+        // Determine the model type based on user role
+        const recipientModel = userRole === "creator" ? "Creator" : "Editor";
+        
+        if (!notificationIds || !Array.isArray(notificationIds)) {
+            return res.status(400).json({
+                success: false,
+                message: "Notification IDs array is required",
+            });
+        }
+        
+        // Mark specific notifications as read
+        if (notificationIds.length > 0) {
+            await Notification.updateMany(
+                {
+                    _id: { $in: notificationIds },
+                    recipient: userId,
+                    recipientModel: recipientModel,
+                },
+                { isRead: true }
+            );
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: "Notifications marked as read",
+        });
+    } catch (error) {
+        console.error("Error marking notifications as read:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to mark notifications as read",
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Mark all notifications as read
+ */
+export const markAllNotificationsAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        
+        // Determine the model type based on user role
+        const recipientModel = userRole === "creator" ? "Creator" : "Editor";
+        
+        // Mark all user's notifications as read
+        await Notification.updateMany(
+            {
+                recipient: userId,
+                recipientModel: recipientModel,
+                isRead: false,
+            },
+            { isRead: true }
+        );
+        
+        res.status(200).json({
+            success: true,
+            message: "All notifications marked as read",
+        });
+    } catch (error) {
+        console.error("Error marking all notifications as read:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to mark all notifications as read",
+            error: error.message,
+        });
     }
 };

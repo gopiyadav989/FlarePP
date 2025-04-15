@@ -11,6 +11,7 @@ import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileVideo, LogIn, User, Shield } from "lucide-react";
 import OAuth from "../components/OAuth";
+import axios from "axios";
 
 export default function Login() {
     const [formData, setFormData] = useState({ role: "creator" });
@@ -47,20 +48,23 @@ export default function Login() {
 
         try {
             setLoading(true);
+            setError(null);
 
-            const res = await fetch("http://localhost:3000/api/auth/login", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+            // Configure axios to use credentials
+            const response = await axios.post("http://localhost:3000/api/auth/login", 
+                formData, 
+                { 
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                }
+            );
 
-            const data = await res.json();
+            const data = response.data;
 
-            if (data.success === false) {
-                setError(data.message);
+            if (!data.success) {
+                setError(data.message || "Login failed");
                 return;
             }
             
@@ -70,8 +74,9 @@ export default function Login() {
             }));
             
             navigate("/");
-        } catch (e) {
-            setError("Error while connecting to server");
+        } catch (error) {
+            console.error("Login error:", error);
+            setError(error.response?.data?.message || "Error connecting to server");
         } finally {
             setLoading(false);
         }
@@ -221,6 +226,12 @@ export default function Login() {
                                             </HoverBorderGradient>
                                         </div>
                                         
+                                        {error && (
+                                            <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
+                                                {error}
+                                            </div>
+                                        )}
+                                        
                                         <div className="relative my-6">
                                             <div className="absolute inset-0 flex items-center">
                                                 <div className="w-full border-t border-white/10"></div>
@@ -297,12 +308,6 @@ export default function Login() {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-
-                        {error && (
-                            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                                {error}
-                            </div>
-                        )}
 
                         <div className="mt-6 text-center">
                             <p className="text-zinc-400 text-sm">

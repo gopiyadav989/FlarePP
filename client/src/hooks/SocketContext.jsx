@@ -15,6 +15,8 @@ export const SocketProvider = ({ children }) => {
   const dispatch = useDispatch();
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState({});
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const socket = useRef(null);
   const reconnectTimeout = useRef(null);
   
@@ -24,6 +26,7 @@ export const SocketProvider = ({ children }) => {
     typingStatus: null,
     videoUploaded: null,
     videoUpdated: null,
+    notification: null,
     // Add more event types here
   });
   
@@ -33,7 +36,7 @@ export const SocketProvider = ({ children }) => {
     
     try {
       // Create WebSocket connection
-      const ws = new WebSocket('ws://localhost:3000');
+      const ws = new WebSocket('ws://localhost:3000/ws');
       
       ws.onopen = () => {
         console.log('WebSocket connected');
@@ -87,6 +90,22 @@ export const SocketProvider = ({ children }) => {
               
               // Show notification
               showNotification('Video updated', data.video.title);
+              break;
+              
+            case 'notification':
+              // Handle the new notification
+              if (callbackRegistry.current.notification) {
+                callbackRegistry.current.notification(data.notification);
+              }
+              
+              // Add to notifications state
+              setNotifications(prev => [data.notification, ...prev]);
+              
+              // Increment unread count
+              setUnreadNotifications(prev => prev + 1);
+              
+              // Show browser notification
+              showNotification(data.notification.title, data.notification.message);
               break;
               
             case 'user_status':
@@ -156,6 +175,11 @@ export const SocketProvider = ({ children }) => {
     callbackRegistry.current.videoUpdated = callback;
   };
   
+  // Register callback for notification event
+  const registerNotificationHandler = (callback) => {
+    callbackRegistry.current.notification = callback;
+  };
+  
   // Send message via WebSocket
   const sendMessage = (recipientId, content, tempId) => {
     if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
@@ -219,6 +243,62 @@ export const SocketProvider = ({ children }) => {
     return true;
   };
   
+  // Notify about assigning an editor to a video
+  const notifyEditorAssigned = (data) => {
+    if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+    
+    socket.current.send(JSON.stringify({
+      type: 'video_assigned',
+      ...data
+    }));
+    
+    return true;
+  };
+  
+  // Notify about video edit completion
+  const notifyVideoEdited = (data) => {
+    if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+    
+    socket.current.send(JSON.stringify({
+      type: 'video_edited',
+      ...data
+    }));
+    
+    return true;
+  };
+  
+  // Notify about revision request
+  const notifyRevisionRequested = (data) => {
+    if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+    
+    socket.current.send(JSON.stringify({
+      type: 'revision_requested',
+      ...data
+    }));
+    
+    return true;
+  };
+  
+  // Notify about video being published
+  const notifyVideoPublished = (data) => {
+    if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+    
+    socket.current.send(JSON.stringify({
+      type: 'video_published',
+      ...data
+    }));
+    
+    return true;
+  };
+  
   // Get user statuses
   const getUserStatuses = (userIds) => {
     if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
@@ -231,6 +311,35 @@ export const SocketProvider = ({ children }) => {
     }));
     
     return true;
+  };
+  
+  // Mark notification(s) as read
+  const markNotificationsAsRead = async (notificationIds) => {
+    try {
+      // Update the UI optimistically
+      if (Array.isArray(notificationIds)) {
+        setNotifications(prev => 
+          prev.map(n => 
+            notificationIds.includes(n._id) ? { ...n, isRead: true } : n
+          )
+        );
+        setUnreadNotifications(prev => Math.max(0, prev - notificationIds.length));
+      } else if (notificationIds === 'all') {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setUnreadNotifications(0);
+      }
+      
+      // Call API to update in the database
+      await fetch(`/api/notifications/${Array.isArray(notificationIds) ? 'mark-read' : 'mark-all-read'}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: Array.isArray(notificationIds) ? JSON.stringify({ notificationIds }) : ''
+      });
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
   };
   
   // Simple notification function (can be replaced with a proper notification system)
@@ -269,6 +378,8 @@ export const SocketProvider = ({ children }) => {
   const value = {
     connected,
     onlineUsers,
+    notifications,
+    unreadNotifications,
     sendMessage,
     sendTyping,
     getUserStatuses,
@@ -276,8 +387,14 @@ export const SocketProvider = ({ children }) => {
     registerTypingHandler,
     registerVideoUploadHandler,
     registerVideoUpdateHandler,
+    registerNotificationHandler,
     notifyVideoUploaded,
-    notifyVideoUpdated
+    notifyVideoUpdated,
+    notifyEditorAssigned,
+    notifyVideoEdited,
+    notifyRevisionRequested,
+    notifyVideoPublished,
+    markNotificationsAsRead
   };
   
   return (

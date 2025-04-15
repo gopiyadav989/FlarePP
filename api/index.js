@@ -3,15 +3,12 @@ import dotenv from "dotenv";
 import cors from "cors";
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
-import http from "http";
 
 import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 import editorRoutes from "./routes/editorRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
-import userRoutes from "./routes/userRoutes.js"
-import conversationRoutes from "./routes/conversationRoutes.js"
-import { setupWebSocket } from "./websockets/socket.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 import connectToDatabase from "./config/database.js";
@@ -31,14 +28,14 @@ app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: "/tmp"
 }));
+
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/editor", editorRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/conversation", conversationRoutes);
+
 app.get("/", (req, res) => {
   return res.json({
     success: true,
@@ -46,11 +43,10 @@ app.get("/", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT;
+// Error handler
+app.use(errorHandler);
 
-// 🔁 Replace app.listen with HTTP server + WebSocket
-const server = http.createServer(app);
-setupWebSocket(server);
-server.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
   console.log(`App is running at ${PORT}`);
 });
