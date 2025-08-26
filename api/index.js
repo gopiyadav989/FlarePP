@@ -8,7 +8,9 @@ import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 import editorRoutes from "./routes/editorRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import { startNotificationCleanupJob } from "./utils/notificationCleanup.js";
 
 dotenv.config();
 import connectToDatabase from "./config/database.js";
@@ -35,6 +37,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/editor", editorRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   return res.json({
@@ -49,4 +52,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`App is running at ${PORT}`);
+  
+  // Start notification cleanup job
+  startNotificationCleanupJob();
 });
