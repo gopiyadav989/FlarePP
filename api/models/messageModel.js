@@ -3,34 +3,32 @@ import mongoose from "mongoose";
 const messageSchema = new mongoose.Schema({
     sender: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        refPath: 'senderModel'
+        required: true
     },
     senderModel: {
         type: String,
         required: true,
         enum: ['Creator', 'Editor']
     },
-    receiver: {
+    recipient: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        refPath: 'receiverModel'
+        required: true
     },
-    receiverModel: {
+    recipientModel: {
         type: String,
         required: true,
         enum: ['Creator', 'Editor']
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
-    read: {
-        type: Boolean,
-        default: false
-      }
-}, {timestamps: true});
+    status: {
+        type: String,
+        enum: ['read', 'unread'],
+        default: 'unread'
+    }
+}, { timestamps: true });
 
-const Message = mongoose.model('Message', messageSchema);
-
-export default Message;
+export default mongoose.model("Message", messageSchema);

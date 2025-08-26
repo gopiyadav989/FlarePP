@@ -1,12 +1,22 @@
-import express from "express"
-import { searchUsers, getConversations, getMessages, sendMessage, markMessagesAsRead } from "../controllers/messageController.js";
-import { auth, isCreator, isEditor } from "../middlewares/auth.js";
+import express from 'express';
+import { auth } from '../middlewares/auth.js';
+import { 
+    searchUsers, 
+    sendMessage, 
+    getConversations,
+    getConversationMessages,
+    markMessagesAsRead,
+    getUnreadCount
+} from '../controllers/messageController.js';
+
 const router = express.Router();
 
-router.get('/search-users',auth, searchUsers);
-router.get('/conversations', auth,getConversations);
-router.get('/conversation/:partnerId', auth,getMessages);
-router.post('/send',auth, sendMessage);
-router.post('/mark-read', auth,markMessagesAsRead);
+// All message routes require authentication
+router.get('/search-users', auth, searchUsers);
+router.post('/send', auth, sendMessage);
+router.get('/conversations', auth, getConversations);
+router.get('/conversation/:partnerId', auth, getConversationMessages);
+router.post('/mark-read', auth, markMessagesAsRead);
+router.get('/unread-count', auth, getUnreadCount);
 
-export default router
+export default router;
