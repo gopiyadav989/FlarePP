@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Search, LogOut, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bell, Search, LogOut, Check, MessageCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +50,7 @@ const sampleNotifications = [
 
 const Navbar = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -241,6 +242,20 @@ const Navbar = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          <Tooltip>
+            <TooltipTrigger>
+              <Link
+                to="/chat"
+                className="p-2 rounded-full hover:bg-zinc-800 transition-colors inline-block"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Chat with Creators</p>
+            </TooltipContent>
+          </Tooltip>
 
           <div className="h-8 w-px bg-zinc-800"></div>
 

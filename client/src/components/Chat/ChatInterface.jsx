@@ -258,7 +258,7 @@ const ChatInterface = () => {
   };
   
   // Handle key press in message input
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -266,7 +266,7 @@ const ChatInterface = () => {
   };
   
   // Handle key press in search input
-  const handleSearchKeyPress = (e) => {
+  const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSearch();
@@ -287,7 +287,7 @@ const ChatInterface = () => {
               className="w-full p-2 bg-transparent outline-none text-white placeholder-zinc-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleSearchKeyPress}
+              onKeyDown={handleSearchKeyDown}
               disabled={searchLoading}
             />
             {searchLoading && (
@@ -484,7 +484,7 @@ const ChatInterface = () => {
                     className="w-full p-3 bg-zinc-800 rounded-lg text-white outline-none resize-none placeholder-zinc-500 min-h-[44px] max-h-32"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     disabled={sendingMessage}
                     rows={1}
                   />

@@ -12,7 +12,7 @@ import SearchPage from "./components/creatorComponents/SearchPage";
 import InProgress from "./pages/editorPages/InProgress";
 import Revisions from "./pages/editorPages/Revisions";
 import Completed from "./pages/editorPages/Completed";
-import Messages from "./pages/editorPages/Messages";
+import ChatInterface from "./components/Chat/ChatInterface";
 import ProfilePage from './components/Profile';
 import CreatorVideoList from './components/creatorComponents/CreatorVideoList';
 import EditorVideoList from './components/editorComponents/EditorVideoList';
@@ -51,7 +51,6 @@ export default function App() {
         <Route path="in-progress" element={<InProgress />} />
         <Route path="revisions" element={<Revisions />} />
         <Route path="completed" element={<Completed />} />
-        <Route path="messages" element={<Messages />} />
       </Route>
      
       <Route
@@ -65,7 +64,6 @@ export default function App() {
         <Route path="" element={<CreatorVideoList />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="chat" element={<Messages />} />
       </Route>
 
       <Route
@@ -81,7 +79,7 @@ export default function App() {
         path="chat"
         element={
           <ProtectedRoute role="any">
-            <Messages />
+            <ChatInterface />
           </ProtectedRoute>
         }
       />

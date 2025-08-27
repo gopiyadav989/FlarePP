@@ -17,11 +17,7 @@ const Dock = () => {
 
   const links = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/editor-dashboard", description: "Overview and analytics", badge: null },
-    // { title: "In Progress", icon: <Clock className="h-5 w-5" />, href: "/editor-dashboard/in-progress", description: "Currently editing", badge: 2 },
-    // { title: "Revisions", icon: <AlertCircle className="h-5 w-5" />, href: "/editor-dashboard/revisions", description: "Need modifications", badge: 1 },
-    // { title: "Completed", icon: <CheckCircle className="h-5 w-5" />, href: "/editor-dashboard/completed", description: "Videos Live on Youtube", badge: null },
-    { title: "Messages", icon: <MessageCircle className="h-5 w-5" />, href: "/editor-dashboard/messages", description: "Creator communications", badge: 5 },
-    // { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, href: "/chat", description: "Chat with others", badge: null }
+    { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, href: "/chat", description: "Creator communications", badge: null },
   ];
 
   const DockItem = ({ title, icon, href, description, badge }) => {
@@ -56,12 +52,12 @@ const Dock = () => {
     );
   };
 
-  const isMessagesRoute = location.pathname === "/editor-dashboard/messages";
+  const isChatRoute = location.pathname === "/chat";
 
   return (
     <div className={cn(
       "fixed bottom-8 left-1/2 transform -translate-x-1/2",
-      isMessagesRoute && "left-4 transform-none", 
+      isChatRoute && "left-4 transform-none", 
       "transition-all duration-300 ease-in-out"
     )}>
     {/* <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2"> */}

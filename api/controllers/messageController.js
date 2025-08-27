@@ -129,9 +129,9 @@ export const sendMessage = async (req, res) => {
 
         // Create and save message with proper sender/recipient field structure
         const message = new Message({
-            sender: new mongoose.Types.ObjectId(senderId),
+            sender: senderId,
             senderModel: senderModel,
-            recipient: new mongoose.Types.ObjectId(recipientId),
+            recipient: recipientId,
             recipientModel: recipientModel,
             content: content.trim(),
             status: 'unread'
@@ -184,7 +184,7 @@ export const getConversations = async (req, res) => {
     try {
         const userId = req.user.id;
         const userRole = req.user.role;
-        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const userObjectId = userId;
 
         // Find unique conversation partners with proper aggregation
         const conversations = await Message.aggregate([
@@ -303,24 +303,13 @@ export const getConversationMessages = async (req, res) => {
             });
         }
 
-        // Fetch messages between the two users
-        const messages = await Message.find({
-            $or: [
-                { sender: userId, recipient: partnerId },
-                { sender: partnerId, recipient: userId }
-            ]
-        })
-            .sort({ createdAt: 1 })
-            .select('content status createdAt sender recipient senderModel')
-            .limit(50); // Limit to 50 messages for performance
-
         // Use aggregation to populate sender details more efficiently
         const populatedMessages = await Message.aggregate([
             {
                 $match: {
                     $or: [
-                        { sender: new mongoose.Types.ObjectId(userId), recipient: new mongoose.Types.ObjectId(partnerId) },
-                        { sender: new mongoose.Types.ObjectId(partnerId), recipient: new mongoose.Types.ObjectId(userId) }
+                        { sender: userId, recipient: partnerId },
+                        { sender: partnerId, recipient: userId }
                     ]
                 }
             },
@@ -361,7 +350,7 @@ export const getConversationMessages = async (req, res) => {
                             { $arrayElemAt: ['$editorSender', 0] }
                         ]
                     },
-                    isOwn: { $eq: ['$sender', new mongoose.Types.ObjectId(userId)] }
+                    isOwn: { $eq: ['$sender', userId] }
                 }
             },
             {

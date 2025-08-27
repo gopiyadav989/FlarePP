@@ -10,7 +10,6 @@ import editorRoutes from "./routes/editorRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import conversationRoutes from "./routes/conversationRoutes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { startNotificationCleanupJob } from "./utils/notificationCleanup.js";
 
@@ -41,7 +40,6 @@ app.use("/api/editor", editorRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/conversations", conversationRoutes);
 
 app.get("/", (req, res) => {
   return res.json({

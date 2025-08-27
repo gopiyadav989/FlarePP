@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, Search, Check } from "lucide-react";
+import { Bell, Search, Check, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import ProfileDropdown from "./ProfileDropDown";
@@ -253,6 +253,22 @@ const Navbar = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/chat")}
+                className="p-2 rounded-xl hover:bg-zinc-900 transition-colors"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Chat with Editors</p>
+            </TooltipContent>
+          </Tooltip>
+          
           <div className="h-8 w-px bg-zinc-900" />
           <ProfileDropdown>
             <Button

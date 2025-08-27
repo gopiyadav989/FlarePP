@@ -16,14 +16,11 @@ const Dock = () => {
   
   const links = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, path: "/creator-dashboard" },
-    // { title: "Tasks", icon: <Video className="h-5 w-5" />, path: "/creator-dashboard/tasks" },
-    // { title: "Files", icon: <FolderOpen className="h-5 w-5" />, path: "/creator-dashboard/files" },
     {
       title: "Upload",
       icon: <Upload className="h-5 w-5" />,
       onClick: () => setIsUploadModalOpen(true)
     },
-    // { title: "History", icon: <Clock className="h-5 w-5" />, path: "/creator-dashboard/history" },
     { title: "Chat", icon: <MessageCircle className="h-5 w-5" />, path: "/chat" },
   ];
   
