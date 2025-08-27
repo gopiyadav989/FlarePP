@@ -5,7 +5,7 @@ import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import EditorDashboard from "./pages/editorPages/EditorDashboard";
 import CreatorDashboard from './pages/creatorPages/CreatorDashboard';
-import ChatPage from './pages/ChatPage';
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectAuthenticated from "./components/RedirectAuthenticated";
 import SearchPage from "./components/creatorComponents/SearchPage";
@@ -65,7 +65,7 @@ export default function App() {
         <Route path="" element={<CreatorVideoList />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="chat" element={<ChatPage />} />
+        <Route path="chat" element={<Messages />} />
       </Route>
 
       <Route
@@ -81,7 +81,7 @@ export default function App() {
         path="chat"
         element={
           <ProtectedRoute role="any">
-            <ChatPage />
+            <Messages />
           </ProtectedRoute>
         }
       />
