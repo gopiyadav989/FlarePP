@@ -117,7 +117,7 @@ const Navbar = () => {
   useEffect(() => {
     fetchNotifications();
     
-    // will use WebSocket later
+    // Poll for notifications every minute
     const interval = setInterval(fetchNotifications, 60000);
 
     return () => {
