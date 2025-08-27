@@ -2,7 +2,7 @@ import Creator from "../models/creatorModel.js";
 import Editor from "../models/editorModel.js";
 import Video from "../models/videoModel.js";
 import cloudinaryUploader from "../utils/cloudinaryUploader.js"
-import { createVideoAssignmentNotification } from "../utils/notificationUtils.js";
+import { createVideoAssignmentNotification, createVideoEditedNotification, createVideoRejectionNotification, createVideoPublishedNotification } from "../utils/notificationUtils.js";
 
 import { google } from "googleapis";
 import axios from "axios";
@@ -238,6 +238,9 @@ export const uploadEditedVideo = async (req, res) => {
       });
     }
     
+    // Get editor information for the notification
+    const editor = await Editor.findById(req.user.id).select("name");
+    
     const videoFile = req.files.editedVideo;
     
     const videoUploadResponse = await cloudinaryUploader(
@@ -254,16 +257,13 @@ export const uploadEditedVideo = async (req, res) => {
       { new: true }
     );
     
-    // Create notification for the creator
-    await createNotification({
-      recipient: video.creator._id,
-      recipientModel: "Creator",
-      title: "Video Edited",
-      message: `Your video "${video.title}" has been edited and is ready for review`,
-      type: "VIDEO_EDITED",
-      relatedVideo: videoId,
-      link: `/videos/${videoId}`
-    });
+    // Create notification for the creator using the helper function
+    await createVideoEditedNotification(
+      video.creator._id,
+      videoId,
+      video.title,
+      editor.name
+    );
     
     return res.status(200).json({
       success: true,
@@ -333,15 +333,11 @@ export const uploadVideoToYouTube = async (req, res) => {
     
     // Create notification for the editor that their work was published
     if (video.editor) {
-      await createNotification({
-        recipient: video.editor._id,
-        recipientModel: "Editor",
-        title: "Video Published",
-        message: `The video "${video.title}" you edited has been published to YouTube!`,
-        type: "VIDEO_PUBLISHED",
-        relatedVideo: videoId,
-        link: `/editor-dashboard/completed`
-      });
+      await createVideoPublishedNotification(
+        video.editor._id,
+        videoId,
+        video.title
+      );
     }
 
     // Respond with the uploaded video details
@@ -393,16 +389,15 @@ export const rejectVideo = async (req, res) => {
       { new: true }
     );
     
-    // Create rejection notification for the editor
-    await createNotification({
-      recipient: video.editor._id,
-      recipientModel: "Editor",
-      title: "Video Needs Revision",
-      message: feedbackMessage || `Your edit for "${video.title}" needs revisions`,
-      type: "VIDEO_REJECTED",
-      relatedVideo: videoId,
-      link: `/editor-dashboard/revisions`
-    });
+    // Create rejection notification for the editor using the helper function
+    const creator = await Creator.findById(req.user.id).select("name");
+    await createVideoRejectionNotification(
+      video.editor._id,
+      videoId,
+      video.title,
+      creator.name,
+      feedbackMessage
+    );
     
     return res.status(200).json({
       success: true,
