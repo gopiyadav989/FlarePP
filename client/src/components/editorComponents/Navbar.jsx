@@ -24,27 +24,27 @@ import { logout } from '../../redux/reducers/userSlice';
 const sampleNotifications = [
   {
     _id: '1',
-    type: 'NEW_ASSIGNMENT',
+    type: 'VIDEO_ASSIGNED',
     message: 'New video assigned: Summer Campaign Edit',
-    read: false,
+    isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    video: 'video-1'
+    relatedVideo: 'video-1'
   },
   {
     _id: '2',
-    type: 'DEADLINE_REMINDER',
-    message: 'Deadline approaching: Product Launch Video',
-    read: false,
+    type: 'VIDEO_REJECTED',
+    message: 'Video rejected: Product Launch Video needs revision',
+    isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-    video: 'video-2'
+    relatedVideo: 'video-2'
   },
   {
     _id: '3',
-    type: 'APPROVAL',
+    type: 'VIDEO_APPROVED',
     message: 'Your edit for Client Testimonial has been approved',
-    read: true,
+    isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    video: 'video-3'
+    relatedVideo: 'video-3'
   }
 ];
 
@@ -57,43 +57,43 @@ const Navbar = () => {
   // Fetch notifications with error handling and fallback
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('/api/notifications', {
-        params: {
-          limit: 10,
-          sort: '-createdAt'
-        }
-      });
+      const response = await axios.get('/api/notifications');
       
-      // Handle both possible API response structures
-      const notificationData = response.data?.notifications || response.data || sampleNotifications;
-      setNotifications(notificationData);
-      setUnreadCount(notificationData.filter(n => !n.read).length);
+      // Expect the response format: { success: true, notifications: [...], unreadCount: number }
+      if (response.data && response.data.success === true) {
+        setNotifications(response.data.notifications || []);
+        setUnreadCount(response.data.unreadCount || 0);
+      } else {
+        console.log('Unexpected API response format:', response.data);
+        setNotifications([]);
+        setUnreadCount(0);
+      }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      // Fallback to sample data in case of error
-      setNotifications(sampleNotifications);
-      setUnreadCount(sampleNotifications.filter(n => !n.read).length);
+      console.log('Error fetching notifications:', error);
+      // Show empty state on error
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      await axios.patch(`/api/notifications/${notificationId}`, {
-        read: true
+      await axios.post('/api/notifications/mark-read', {
+        notificationIds: [notificationId]
       });
       setNotifications(prev => 
         prev.map(n => 
-          n._id === notificationId ? { ...n, read: true } : n
+          n._id === notificationId ? { ...n, isRead: true } : n
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.log('Error marking notification as read:', error);
       // Optimistically update UI even if API call fails
       setNotifications(prev => 
         prev.map(n => 
-          n._id === notificationId ? { ...n, read: true } : n
+          n._id === notificationId ? { ...n, isRead: true } : n
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -103,13 +103,13 @@ const Navbar = () => {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      await axios.patch('/api/notifications/mark-all-read');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      await axios.post('/api/notifications/mark-all-read');
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.log('Error marking all notifications as read:', error);
       // Optimistically update UI even if API call fails
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     }
   };
@@ -127,26 +127,33 @@ const Navbar = () => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case "NEW_ASSIGNMENT": return "🎥";
-      case "DEADLINE_REMINDER": return "⏰";
-      case "REVISION_REQUEST": return "📝";
-      case "APPROVAL": return "✅";
-      case "MESSAGE": return "💬";
+      case "VIDEO_ASSIGNED": return "🎥";
+      case "VIDEO_REJECTED": return "🔄";
+      case "VIDEO_APPROVED": return "✅";
+      case "VIDEO_PUBLISHED": return "🚀";
       default: return "📢";
     }
   };
 
   const handleNotificationClick = async (notification) => {
-    if (!notification.read) {
+    if (!notification.isRead) {
       await markAsRead(notification._id);
     }
     // Navigate to relevant page based on notification type
     switch (notification.type) {
-      case "NEW_ASSIGNMENT":
-        window.location.href = `/editor-dashboard/video/${notification.video}`;
+      case "VIDEO_ASSIGNED":
+      case "VIDEO_REJECTED":
+      case "VIDEO_APPROVED":
+      case "VIDEO_PUBLISHED":
+        if (notification.relatedVideo) {
+          window.location.href = `/editor-dashboard/video/${notification.relatedVideo}`;
+        }
         break;
-      // Add other cases as needed
       default:
+        // Use link field if available
+        if (notification.link) {
+          window.location.href = notification.link;
+        }
         break;
     }
   };
@@ -206,7 +213,7 @@ const Navbar = () => {
                           <DropdownMenuItem
                             key={notif._id}
                             className={`flex items-start gap-3 p-3 cursor-pointer ${
-                              !notif.read ? 'bg-blue-500/10' : ''
+                              !notif.isRead ? 'bg-blue-500/10' : ''
                             }`}
                             onClick={() => handleNotificationClick(notif)}>
                             <span className="text-lg">

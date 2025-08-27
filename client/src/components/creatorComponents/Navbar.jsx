@@ -25,27 +25,27 @@ import {
 const sampleNotifications = [
   {
     _id: '1',
-    type: 'EDITOR_ASSIGNED',
+    type: 'VIDEO_ASSIGNED',
     message: 'Editor John Doe has been assigned to your video',
-    read: false,
+    isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    video: 'video-1'
+    relatedVideo: 'video-1'
   },
   {
     _id: '2',
-    type: 'EDIT_COMPLETED',
+    type: 'VIDEO_EDITED',
     message: 'Your video "Marketing Campaign" has been edited',
-    read: false,
+    isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-    video: 'video-2'
+    relatedVideo: 'video-2'
   },
   {
     _id: '3',
-    type: 'COMMENT_ADDED',
-    message: 'New comment on your video "Product Launch"',
-    read: true,
+    type: 'VIDEO_PUBLISHED',
+    message: 'Your video "Product Launch" has been published',
+    isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    video: 'video-3'
+    relatedVideo: 'video-3'
   }
 ];
 
@@ -62,36 +62,28 @@ const Navbar = () => {
     try {
       const response = await axios.get('/api/notifications');
       
-      // Extract the notifications array from the response
-      let notificationData;
-      
-      // Handle different response formats
+      // Expect the response format: { success: true, notifications: [...], unreadCount: number }
       if (response.data && response.data.success === true) {
-        // If the response follows the { success: true, notifications: [...] } format
-        notificationData = response.data.notifications || [];
+        setNotifications(response.data.notifications || []);
         setUnreadCount(response.data.unreadCount || 0);
       } else {
-        // Otherwise assume it's just the array directly
-        notificationData = Array.isArray(response.data) ? response.data : [];
-        // Calculate unread count
-        setUnreadCount(notificationData.filter(n => n && !n.isRead).length);
+        console.log('Unexpected API response format:', response.data);
+        setNotifications([]);
+        setUnreadCount(0);
       }
-      
-      // Set notifications
-      setNotifications(notificationData);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      // Fallback to sample data in case of error
-      setNotifications(sampleNotifications);
-      setUnreadCount(sampleNotifications.filter(n => !n.read).length);
+      console.log('Error fetching notifications:', error);
+      // Show empty state on error
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      await axios.patch(`/api/notifications/${notificationId}`, {
-        isRead: true
+      await axios.post('/api/notifications/mark-read', {
+        notificationIds: [notificationId]
       });
       setNotifications(prev => 
         prev.map(n => 
@@ -100,7 +92,7 @@ const Navbar = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.log('Error marking notification as read:', error);
       // Optimistically update UI even if API call fails
       setNotifications(prev => 
         prev.map(n => 
@@ -114,11 +106,11 @@ const Navbar = () => {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      await axios.patch('/api/notifications/mark-all-read');
+      await axios.post('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.log('Error marking all notifications as read:', error);
       // Optimistically update UI even if API call fails
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
@@ -138,11 +130,11 @@ const Navbar = () => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case "EDITOR_ASSIGNED": return "👤";
-      case "EDIT_COMPLETED": return "✅";
-      case "REVISION_REQUESTED": return "🔄";
-      case "COMMENT_ADDED": return "💬";
-      case "FEEDBACK_RECEIVED": return "📝";
+      case "VIDEO_ASSIGNED": return "👤";
+      case "VIDEO_EDITED": return "✅";
+      case "VIDEO_REJECTED": return "🔄";
+      case "VIDEO_APPROVED": return "✅";
+      case "VIDEO_PUBLISHED": return "🚀";
       default: return "📢";
     }
   };
@@ -153,12 +145,20 @@ const Navbar = () => {
     }
     // Navigate to relevant page based on notification type
     switch (notification.type) {
-      case "EDITOR_ASSIGNED":
-      case "EDIT_COMPLETED":
-      case "COMMENT_ADDED":
-        navigate(`/creator-dashboard/video/${notification.relatedVideo}`);
+      case "VIDEO_ASSIGNED":
+      case "VIDEO_EDITED":
+      case "VIDEO_REJECTED":
+      case "VIDEO_APPROVED":
+      case "VIDEO_PUBLISHED":
+        if (notification.relatedVideo) {
+          navigate(`/creator-dashboard/video/${notification.relatedVideo}`);
+        }
         break;
       default:
+        // Use link field if available
+        if (notification.link) {
+          navigate(notification.link);
+        }
         break;
     }
   };
