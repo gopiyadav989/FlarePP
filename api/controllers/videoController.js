@@ -2,7 +2,7 @@ import Creator from "../models/creatorModel.js";
 import Editor from "../models/editorModel.js";
 import Video from "../models/videoModel.js";
 import cloudinaryUploader from "../utils/cloudinaryUploader.js"
-import { createNotification } from "./notificationController.js";
+import { createVideoAssignmentNotification } from "../utils/notificationUtils.js";
 
 import { google } from "googleapis";
 import axios from "axios";
@@ -189,16 +189,13 @@ export const assignEditor = async (req, res) => {
       { new: true }
     );
     
-    // Create notification for the editor
-    await createNotification({
-      recipient: editorId,
-      recipientModel: "Editor",
-      title: "New Video Assignment",
-      message: `You have been assigned to edit the video "${video.title}"`,
-      type: "VIDEO_ASSIGNED",
-      relatedVideo: videoId,
-      link: `/editor-dashboard/in-progress`
-    });
+    // Create notification for the editor using the helper function
+    await createVideoAssignmentNotification(
+      editorId,
+      videoId,
+      video.title,
+      video.creator.name
+    );
 
     res.status(200).json({
       success: true,

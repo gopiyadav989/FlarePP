@@ -12,9 +12,14 @@ export const NOTIFICATION_TYPES = {
 
 // Create notification - simple and direct
 export const createNotification = async (notificationData) => {
-  const notification = new Notification(notificationData);
-  await notification.save();
-  return notification;
+  try {
+    const notification = new Notification(notificationData);
+    await notification.save();
+    return notification;
+  } catch (error) {
+    console.error('❌ Error creating notification:', error);
+    throw error;
+  }
 };
 
 // Video assignment notification

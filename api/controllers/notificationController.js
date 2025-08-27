@@ -12,7 +12,7 @@ export const getUserNotifications = async (req, res) => {
       recipientModel: recipientModel,
     })
       .sort({ createdAt: -1 })
-      .limit(30)
+      .limit(20)
       .populate("relatedVideo", "title thumbnail");
     
     const unreadCount = await Notification.countDocuments({

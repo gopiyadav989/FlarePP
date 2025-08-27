@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 const { authenticateToken } = require('../middleware/authMiddleware');
+const { createNotification } = require('../../api/utils/notificationUtils.js');
 
 // Create a new notification
 router.post('/', async (req, res) => {
   try {
-    const notification = new Notification(req.body);
-    await notification.save();
+    const notification = await createNotification(req.body);
     res.status(201).json(notification);
   } catch (error) {
     res.status(400).json({ message: error.message });
