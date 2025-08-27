@@ -44,6 +44,9 @@ const notificationSchema = new mongoose.Schema(
 notificationSchema.index({ recipient: 1, read: 1 });
 notificationSchema.index({ recipient: 1, createdAt: -1 });
 
+// TTL index for automatic cleanup after 30 days
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+
 const Notification = mongoose.model('Notification', notificationSchema);
 
 module.exports = Notification; 
